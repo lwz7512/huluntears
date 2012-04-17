@@ -2,9 +2,12 @@ package com.ybcx.huluntears.scenes{
 	
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
+	
+	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.AboutUsLayer;
 	import com.ybcx.huluntears.ui.STProgressBar;
+	
 	
 	import flash.display.Bitmap;
 	
@@ -67,13 +70,8 @@ package com.ybcx.huluntears.scenes{
 		
 		override protected function onStage(evt:Event):void{
 			
-			_queLoader.execute();
-			
-//			_progressbar = new STProgressBar(0x666666,this.stage.stageWidth,2,"载入欢迎画面...");
-			//放在舞台中央
-//			_progressbar.x = 0;
-//			_progressbar.y = this.stage.stageHeight >>1;
-//			this.addChild(_progressbar);
+			_queLoader.execute();			
+
 		}
 		
 		private function onItemComplete(evt:QueueLoaderEvent):void{
@@ -108,6 +106,7 @@ package com.ybcx.huluntears.scenes{
 				playgameBtn.x = playgameX;
 				playgameBtn.y = playgameY;
 				this.addChild(playgameBtn);
+				playgameBtn.addEventListener(Event.TRIGGERED, switchToAobao);
 			}
 			
 			//关于我们窗口需要的背景图
@@ -127,6 +126,11 @@ package com.ybcx.huluntears.scenes{
 				aboutusLayer.background = aboutusBM;
 			}
 			this.addChild(aboutusLayer);
+		}
+		
+		private function switchToAobao(evt:Event):void{
+			var end:GameEvent = new GameEvent(GameEvent.SWITCH_SCENE);
+			this.dispatchEvent(end);
 		}
 		
 		

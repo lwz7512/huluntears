@@ -116,6 +116,7 @@ package com.ybcx.huluntears.scenes{
 			_frames = null;
 			this.removeChild(_movieByImages);
 			_movieByImages = null;
+			_queLoader.dispose();
 			
 		}
 		

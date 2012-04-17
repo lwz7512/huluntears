@@ -6,10 +6,11 @@ package com.ybcx.huluntears.map{
 	import com.ybcx.huluntears.map.TileGrid;
 	
 	import flash.display.BitmapData;
-	import flash.display.Shape;	
+	import flash.display.Shape;
 	import flash.geom.Rectangle;
 	
 	import starling.display.Image;
+	import starling.display.Quad;
 	import starling.display.Sprite;
 	import starling.events.Event;
 	import starling.events.Touch;
@@ -54,7 +55,7 @@ package com.ybcx.huluntears.map{
 		//这个区域作为瓦片网格显示内容的范围
 		private var _currentViewport:Rectangle;
 		
-		
+		private var _loadCompleted:Boolean;
 		
 		public function MapLayer(){
 			super();
@@ -63,20 +64,21 @@ package com.ybcx.huluntears.map{
 		}
 		
 		private function onStage(evt:Event):void{
+			
+			if(_loadCompleted) return;
+			
+			//黑色背景色
+			var background:Quad = new Quad(_viewportWidth,_viewportHeight,0x000000);
+			this.addChild(background);
+			
 			//建立地图视窗大小，默认在地图左上角
 			//鼠标拖动时改变这个对象
 			_currentViewport = new Rectangle(_initViewportX,_initViewportY,_viewportWidth,_viewportHeight);
 			//添加交互逻辑
 			this.addEventListener(TouchEvent.TOUCH, onTouch);
-								
-			//后添加玻璃板，铺满整个应用
-			var bd:BitmapData = new BitmapData(this.stage.stageWidth,this.stage.stageHeight,true,0x01FFFFFF);
-			//FIXME, for debug only to show viewport border
-			var border:Shape = new Shape();
-			border.graphics.lineStyle(1,0xCCCCCC);
-			border.graphics.drawRect(0,0,_viewportWidth,_viewportHeight);
-			bd.draw(border);
 			
+			//后添加玻璃板，铺满整个应用
+			var bd:BitmapData = new BitmapData(this.stage.stageWidth,this.stage.stageHeight,true,0x01FFFFFF);						
 			var tx:Texture = Texture.fromBitmapData(bd);
 			_touchBoard = new Image(tx);
 			this.addChild(_touchBoard);
@@ -88,8 +90,10 @@ package com.ybcx.huluntears.map{
 			_tileGrid = new TileGrid(_tileEngine.boundary);
 			//SHOW THE INIT VIEWPORT...
 			moveMap(0,0);
-			//放在底部
-			this.addChildAt(_tileGrid,0);
+			//FIXME, 放在背景之上
+			this.addChildAt(_tileGrid,1);
+			
+			_loadCompleted = true;
 		}
 		
 		private function onTouch(evt:TouchEvent):void{

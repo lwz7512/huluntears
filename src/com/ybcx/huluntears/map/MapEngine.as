@@ -156,6 +156,7 @@ package com.ybcx.huluntears.map{
 		
 		public function dispose():void{
 			_tilePool = null;
+			_queLoader.dispose();
 		}
 		
 		
