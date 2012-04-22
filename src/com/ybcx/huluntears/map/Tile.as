@@ -40,7 +40,7 @@ package com.ybcx.huluntears.map{
 			var border:Shape = new Shape();
 			//FIXME, 这里至少2个像素宽才看得见
 			//2012/04/15
-			border.graphics.lineStyle(2,0xF5F5F5);
+			border.graphics.lineStyle(1,0x000000);
 			border.graphics.drawRect(0,0,size,size);
 			var bd:BitmapData = new BitmapData(SIZE,SIZE,true,0x000000);
 			bd.draw(border);

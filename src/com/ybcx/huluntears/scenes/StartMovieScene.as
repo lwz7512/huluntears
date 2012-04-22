@@ -95,11 +95,15 @@ package com.ybcx.huluntears.scenes{
 		private function onQueueComplete(evt:QueueLoaderEvent):void{
 			this.removeChild(_progressbar);
 			//FIXME, ....TO MODIFY FRAMERATE...
-			_movieByImages = new MovieClip(_frames,24);
+			_movieByImages = new MovieClip(_frames,12);
 			_movieByImages.addEventListener(Event.COMPLETE, onSceneComplete);
 			this.addChild(_movieByImages);
 			//播放
 			Starling.juggler.add(_movieByImages);
+			
+			//通知主场景，动画开始播放			
+			var start:GameEvent = new GameEvent(GameEvent.MOVIE_STARTED);
+			this.dispatchEvent(start);
 		}
 		
 		

@@ -68,7 +68,7 @@ package com.ybcx.huluntears.map{
 			if(_loadCompleted) return;
 			
 			//黑色背景色
-			var background:Quad = new Quad(_viewportWidth,_viewportHeight,0x000000);
+			var background:Quad = new Quad(_viewportWidth,_viewportHeight+100,0x000000);
 			this.addChild(background);
 			
 			//建立地图视窗大小，默认在地图左上角

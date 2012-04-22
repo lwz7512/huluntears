@@ -5,6 +5,7 @@ package{
 	import com.ybcx.huluntears.scenes.FirstMapScene;
 	import com.ybcx.huluntears.scenes.StartMovieScene;
 	import com.ybcx.huluntears.scenes.WelcomeScene;
+	import com.ybcx.huluntears.ui.BottomToolBar;
 	
 	import starling.animation.Transitions;
 	import starling.animation.Tween;
@@ -21,6 +22,9 @@ package{
 	 */ 
 	public class Game extends Sprite{
 		
+		//全局的道具栏
+		private var _uniToolBar:BottomToolBar;
+		
 		private var startScene:StartMovieScene;
 		private var welcomeScene:WelcomeScene;
 		private var aobaoScene:AobaoScene;
@@ -36,6 +40,7 @@ package{
 			//FIXME, release here...
 			startScene = new StartMovieScene();
 			startScene.addEventListener(GameEvent.SWITCH_SCENE, gotoWelcome);
+			startScene.addEventListener(GameEvent.MOVIE_STARTED, startLoadToolbar);
 			this.addChild(startScene);	
 		}
 		
@@ -49,10 +54,21 @@ package{
 			this.addChild(welcomeScene);
 		}
 		
+		private function startLoadToolbar(evt:Event):void{
+			_uniToolBar = new BottomToolBar();
+			this.addChild(_uniToolBar);
+			//先隐藏
+			_uniToolBar.visible = false;
+		}
+		
+
+		
 		private function gotoAobao(evt:Event):void{
 			this.removeChild(welcomeScene,true);
 			
 			aobaoScene = new AobaoScene();
+			//必须在显示前添加道具栏
+			aobaoScene.toolbar = _uniToolBar;
 			this.addChild(aobaoScene);
 			aobaoScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
 		}
@@ -62,6 +78,7 @@ package{
 						
 			if(!firstMapScene){
 				firstMapScene = new FirstMapScene();
+				firstMapScene.toolbar = _uniToolBar;
 				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE, backtoAobao);				
 			}
 			this.addChild(firstMapScene);

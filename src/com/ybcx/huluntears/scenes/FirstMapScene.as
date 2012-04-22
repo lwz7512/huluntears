@@ -6,6 +6,7 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.map.MapLayer;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
+	import com.ybcx.huluntears.ui.BottomToolBar;
 	
 	import flash.events.Event;
 	
@@ -24,31 +25,17 @@ package com.ybcx.huluntears.scenes{
 		
 		private var _firstMapConfig:String = "assets/sceaobao/firstmap.xml";
 		private var _tilePath:String = "assets/sceaobao/tiles/";
-		
-		//道具栏背景
-		private var _toolBackgroundPath:String = "assets/sceaobao/Toolbar.png";
-		//卷轴
-		private var _toolReelUpPath:String = "assets/sceaobao/Toolbar_Reel_1.png";
-		private var _toolReelDownPath:String = "assets/sceaobao/Toolbar_Reel_2.png";
-		//左右箭头
-		private var _toolLeftArrowPath:String = "assets/sceaobao/toolbar_left.png";
-		private var _toolRightArrowPath:String = "assets/sceaobao/toolbar_right.png";
-		
 		private var _backAobaoPath:String = "assets/firstmap/tool_back.png";
-		
+			
 		private var _xmlLoader:XMLoader;
 		private var _loadingTF:TextField;
 		
-		private var _backgroundMap:MapLayer;
-		
-		private var _reelTool:Button;
-		private var toolBackground:Image;
-		private var toolReelUp:Image;
-		private var toolReelDown:Image;
-		private var toolLeftArrow:Image;
-		private var toolRightArrow:Image;
-		
+		private var _backgroundMap:MapLayer;		
+
+		//返回按钮
 		private var backAobao:Image;
+		//道具栏
+		private var _toolBar:BottomToolBar;
 		
 		//下载队列
 		private var _queLoader:QueueLoader;
@@ -58,6 +45,10 @@ package com.ybcx.huluntears.scenes{
 		
 		public function FirstMapScene(){
 			super();
+		}
+		
+		public function set toolbar(tb:BottomToolBar):void{
+			_toolBar = tb;
 		}
 		
 		//FIXME, 该场景有两类Event，所以要加包名
@@ -83,18 +74,15 @@ package com.ybcx.huluntears.scenes{
 			_queLoader = new QueueLoader();
 			_queLoader.addEventListener(QueueLoaderEvent.ITEM_COMPLETE, onItemLoaded);
 			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR,onItemError);
-			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);
+			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);		
 			
-			_queLoader.addItem(_toolBackgroundPath,null, {title : _toolBackgroundPath});
-			_queLoader.addItem(_toolReelUpPath,null, {title : _toolReelUpPath});
-			_queLoader.addItem(_toolReelDownPath,null, {title : _toolReelDownPath});
-			_queLoader.addItem(_toolLeftArrowPath,null, {title : _toolLeftArrowPath});
-			_queLoader.addItem(_toolRightArrowPath,null, {title : _toolRightArrowPath});
-			_queLoader.addItem(_backAobaoPath,null, {title : _backAobaoPath});
-			
+			_queLoader.addItem(_backAobaoPath,null, {title : _backAobaoPath});			
 			_queLoader.execute();
 			
 			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
+			
+			//显示道具栏
+			_toolBar.showToolbar();
 		}
 		
 		/**
@@ -113,29 +101,8 @@ package com.ybcx.huluntears.scenes{
 		
 		//单个图片加载完成
 		private function onItemLoaded(evt:QueueLoaderEvent):void{
-			if(evt.title==_toolBackgroundPath){
-				toolBackground = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolBackgroundPath);
-			}
-			if(evt.title==_toolReelUpPath){
-				toolReelUp = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolReelUpPath);
-			}
-			if(evt.title==_toolReelDownPath){
-				toolReelDown = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolReelDownPath);
-			}
-			if(evt.title==_toolLeftArrowPath){
-				toolLeftArrow = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolLeftArrowPath);
-			}
-			if(evt.title==_toolRightArrowPath){
-				toolRightArrow = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolRightArrowPath);
-			}
 			if(evt.title==_backAobaoPath){
 				backAobao = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_backAobaoPath);
 			}
 		}
 		
@@ -147,29 +114,7 @@ package com.ybcx.huluntears.scenes{
 			
 			_loadCompleted = true;
 			
-			//道具栏
-			toolBackground.x = 0;
-			//这个位置刚合适
-			toolBackground.y = 452;
-			this.addChild(toolBackground);
-			
-			//卷轴
-			var upTexture:Texture = toolReelUp.texture;
-			var downTexture:Texture = toolReelDown.texture;
-			_reelTool = new Button(upTexture,"",downTexture);
-			_reelTool.y = 482;
-			_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
-			this.addChild(_reelTool);
-			
-			//左右箭头
-			toolLeftArrow.x = 10;
-			toolLeftArrow.y = 550;
-			this.addChild(toolLeftArrow);
-			
-			toolRightArrow.x = AppConfig.VIEWPORT_WIDTH-90;
-			toolRightArrow.y = 540;
-			this.addChild(toolRightArrow);
-			
+	
 			//返回箭头
 			backAobao.x = 10;
 			backAobao.y = AppConfig.VIEWPORT_HEIGHT >> 1;

@@ -5,6 +5,7 @@ package com.ybcx.huluntears.scenes{
 	import com.hydrotik.queueloader.QueueLoaderEvent;
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
+	import com.ybcx.huluntears.ui.BottomToolBar;
 	import com.ybcx.huluntears.ui.STProgressBar;
 	
 	import flash.display.BitmapData;
@@ -24,16 +25,8 @@ package com.ybcx.huluntears.scenes{
 		
 		//---------- 图片路径 ----------------------
 		private var _aobaoFocusPath:String = "assets/sceaobao/aobao_focus.png";
-		private var _aobaoHeadPath:String = "assets/sceaobao/aobao_head.png";
-		//道具栏背景
-		private var _toolBackgroundPath:String = "assets/sceaobao/Toolbar.png";
-		//卷轴
-		private var _toolReelUpPath:String = "assets/sceaobao/Toolbar_Reel_1.png";
-		private var _toolReelDownPath:String = "assets/sceaobao/Toolbar_Reel_2.png";
-		//左右箭头
-		private var _toolLeftArrowPath:String = "assets/sceaobao/toolbar_left.png";
-		private var _toolRightArrowPath:String = "assets/sceaobao/toolbar_right.png";
-		//返回大地图场景箭头
+//		private var _aobaoHeadPath:String = "assets/sceaobao/aobao_head.png";
+	//返回大地图场景箭头
 		private var _toolReturnPath:String = "assets/sceaobao/tool_return.png";
 		//宝石
 		private var _jewelPath:String = "assets/sceaobao/jewel.png";
@@ -42,12 +35,7 @@ package com.ybcx.huluntears.scenes{
 		
 		//--------- 图片对象 -------------------
 		private var aobaoFocus:Image;
-		private var aobaoHead:Image;
-		private var toolBackground:Image;
-		private var toolReelUp:Image;
-		private var toolReelDown:Image;
-		private var toolLeftArrow:Image;
-		private var toolRightArrow:Image;
+//		private var aobaoHead:Image;
 		private var toolReturn:Image;
 		private var jewel:Image;
 		private var hidedMap:Image;
@@ -62,9 +50,9 @@ package com.ybcx.huluntears.scenes{
 		private var _loadCompleted:Boolean;
 		
 		private var _mask:Image;
-		private var _reelTool:Button;
 		
 		
+		private var _toolBar:BottomToolBar;
 		
 		
 		/**
@@ -80,6 +68,10 @@ package com.ybcx.huluntears.scenes{
 			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);
 								
 			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
+		}
+		
+		public function set toolbar(tb:BottomToolBar):void{
+			_toolBar = tb;
 		}
 		
 		/**
@@ -109,12 +101,8 @@ package com.ybcx.huluntears.scenes{
 			this.addChild(_touchBoard);
 			
 			_queLoader.addItem(_aobaoFocusPath,null, {title : _aobaoFocusPath});
-			_queLoader.addItem(_aobaoHeadPath,null, {title : _aobaoHeadPath});
-			_queLoader.addItem(_toolBackgroundPath,null, {title : _toolBackgroundPath});
-			_queLoader.addItem(_toolReelUpPath,null, {title : _toolReelUpPath});
-			_queLoader.addItem(_toolReelDownPath,null, {title : _toolReelDownPath});
-			_queLoader.addItem(_toolLeftArrowPath,null, {title : _toolLeftArrowPath});
-			_queLoader.addItem(_toolRightArrowPath,null, {title : _toolRightArrowPath});
+//			_queLoader.addItem(_aobaoHeadPath,null, {title : _aobaoHeadPath});
+
 			_queLoader.addItem(_toolReturnPath,null, {title : _toolReturnPath});
 			_queLoader.addItem(_jewelPath,null, {title : _jewelPath});
 			_queLoader.addItem(_hidedMapPath,null, {title : _hidedMapPath});
@@ -127,6 +115,8 @@ package com.ybcx.huluntears.scenes{
 			_progressbar.x = 0;
 			_progressbar.y = this.stage.stageHeight >>1;
 			this.addChild(_progressbar);
+			
+			
 		}
 		
 		//单个图片加载完成
@@ -136,39 +126,17 @@ package com.ybcx.huluntears.scenes{
 				this.addChild(aobaoFocus);
 				
 				aobaoFocus.y = -aobaoFocus.height;
-				trace("aobao height: "+aobaoFocus.height);
 				
-				//执行动画
+				//从上而下滑出
 				var tween:Tween = new Tween(aobaoFocus, 3);
-				tween.animate("y",0);
-				tween.onComplete = startToPlay;
-				Starling.juggler.add(tween);
-				
+				tween.animate("y",-20);		
+				tween.onComplete = function():void{
+					jewel.visible = true;
+					startToPlay();
+				}
+				Starling.juggler.add(tween);				
 			}
-			if(evt.title==_aobaoHeadPath){
-				aobaoHead = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_aobaoHeadPath);
-			}
-			if(evt.title==_toolBackgroundPath){
-				toolBackground = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolBackgroundPath);
-			}
-			if(evt.title==_toolReelUpPath){
-				toolReelUp = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolReelUpPath);
-			}
-			if(evt.title==_toolReelDownPath){
-				toolReelDown = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolReelDownPath);
-			}
-			if(evt.title==_toolLeftArrowPath){
-				toolLeftArrow = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolLeftArrowPath);
-			}
-			if(evt.title==_toolRightArrowPath){
-				toolRightArrow = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolRightArrowPath);
-			}
+
 			if(evt.title==_toolReturnPath){
 				toolReturn = new Image(Texture.fromBitmap(evt.content));
 				trace("loaded: "+_toolReturnPath);
@@ -176,6 +144,10 @@ package com.ybcx.huluntears.scenes{
 			if(evt.title==_jewelPath){
 				jewel = new Image(Texture.fromBitmap(evt.content));
 				jewel.addEventListener(TouchEvent.TOUCH, onJewelTouched);
+				this.addChild(jewel);
+				jewel.x = 384;
+				jewel.y = 97;
+				jewel.visible = false;
 			}
 			if(evt.title==_hidedMapPath){
 				hidedMap = new Image(Texture.fromBitmap(evt.content));
@@ -189,59 +161,14 @@ package com.ybcx.huluntears.scenes{
 			
 			if(touch.phase == TouchPhase.ENDED){
 				if(_mask) return;
-				
+				//给宝石下面的东西加遮盖，使之变暗
 				var bd:BitmapData = new BitmapData(AppConfig.VIEWPORT_WIDTH,AppConfig.VIEWPORT_HEIGHT+100,true,0xCC000000);
 				_mask = new Image(Texture.fromBitmapData(bd));
 				this.addChildAt(_mask,this.getChildIndex(jewel));
 			}
 		}
 		
-		private function startToPlay():void{
-			var fadeout:Tween = new Tween(aobaoFocus,2);
-			fadeout.animate("alpha",0);
-			fadeout.onComplete = delayToDo;
-			Starling.juggler.add(fadeout);
-			
-			this.addChild(aobaoHead);
-			aobaoHead.x = 104;
-			aobaoHead.y = 81;
-			aobaoHead.alpha = 0;
-			
-			this.addChild(jewel);
-			jewel.x = 384;
-			jewel.y = 97;
-			jewel.alpha = 0;
-			
-			var fadein_head:Tween = new Tween(aobaoHead,2);
-			fadein_head.animate("alpha",1);
-			Starling.juggler.add(fadein_head);
-			
-			var fadein_jewel:Tween = new Tween(jewel,2);
-			fadein_jewel.animate("alpha",1);
-			Starling.juggler.add(fadein_jewel);
-			
-			//道具栏
-			toolBackground.x = 0;
-			//这个位置刚合适
-			toolBackground.y = 452;
-			this.addChild(toolBackground);
-			
-			//卷轴
-			var upTexture:Texture = toolReelUp.texture;
-			var downTexture:Texture = toolReelDown.texture;
-			_reelTool = new Button(upTexture,"",downTexture);
-			_reelTool.y = 482;
-			_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
-			this.addChild(_reelTool);
-			
-			//左右箭头
-			toolLeftArrow.x = 10;
-			toolLeftArrow.y = 550;
-			this.addChild(toolLeftArrow);
-			
-			toolRightArrow.x = AppConfig.VIEWPORT_WIDTH-90;
-			toolRightArrow.y = 540;
-			this.addChild(toolRightArrow);
+		private function startToPlay():void{				
 			
 			//到大地图场景
 			toolReturn.x = AppConfig.VIEWPORT_WIDTH-60;
@@ -281,6 +208,9 @@ package com.ybcx.huluntears.scenes{
 			
 			_loadCompleted = true;
 			this.removeChild(_progressbar);
+			
+			//显示道具栏
+			_toolBar.showToolbar();
 		}
 		
 		private function onItemError(evt:QueueLoaderEvent):void{
@@ -291,6 +221,7 @@ package com.ybcx.huluntears.scenes{
 			super.dispose();
 			
 			_queLoader.dispose();
+			_toolBar = null;
 		}
 		
 
