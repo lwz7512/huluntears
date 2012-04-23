@@ -12,6 +12,9 @@ package{
 	import starling.core.Starling;
 	import starling.display.Sprite;
 	import starling.events.Event;
+	import starling.events.Touch;
+	import starling.events.TouchEvent;
+	import starling.events.TouchPhase;
 	
 	/**
 	 * 主控各个场景切换的类，监听场景切换事件<br/>
@@ -31,17 +34,30 @@ package{
 		private var firstMapScene:FirstMapScene;
 		
 		
+		
 		public function Game(){
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
+//			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
 		}
 		
 		private function onStage(evt:Event):void{
+								
 			//1、显示开场动画场景
-			//FIXME, release here...
+			
 			startScene = new StartMovieScene();
 			startScene.addEventListener(GameEvent.SWITCH_SCENE, gotoWelcome);
 			startScene.addEventListener(GameEvent.MOVIE_STARTED, startLoadToolbar);
 			this.addChild(startScene);	
+						
+		}
+		
+		private function onSceneTouch(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(this);
+			if (touch == null) return;
+			
+			if(touch.phase==TouchPhase.ENDED){
+				
+			}
 		}
 		
 		//2，开场动画结束，进入主菜单
@@ -55,9 +71,10 @@ package{
 		}
 		
 		private function startLoadToolbar(evt:Event):void{
+		
 			_uniToolBar = new BottomToolBar();
 			this.addChild(_uniToolBar);
-			//先隐藏
+			//FIXME, 先隐藏
 			_uniToolBar.visible = false;
 		}
 		
@@ -82,13 +99,14 @@ package{
 				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE, backtoAobao);				
 			}
 			this.addChild(firstMapScene);
-						
+			_uniToolBar.showToolbar();			
 		}
 		
 		private function backtoAobao(evt:Event):void{
 			this.removeChild(firstMapScene);
 			
 			this.addChild(aobaoScene);
+			_uniToolBar.showToolbar();
 		}
 		
 	} //end of class

@@ -3,6 +3,7 @@ package com.ybcx.huluntears.scenes{
 	
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
+	import com.ybcx.huluntears.animation.FadeSequence;
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.BottomToolBar;
@@ -25,8 +26,7 @@ package com.ybcx.huluntears.scenes{
 		
 		//---------- 图片路径 ----------------------
 		private var _aobaoFocusPath:String = "assets/sceaobao/aobao_focus.png";
-//		private var _aobaoHeadPath:String = "assets/sceaobao/aobao_head.png";
-	//返回大地图场景箭头
+		//返回大地图场景箭头
 		private var _toolReturnPath:String = "assets/sceaobao/tool_return.png";
 		//宝石
 		private var _jewelPath:String = "assets/sceaobao/jewel.png";
@@ -35,7 +35,6 @@ package com.ybcx.huluntears.scenes{
 		
 		//--------- 图片对象 -------------------
 		private var aobaoFocus:Image;
-//		private var aobaoHead:Image;
 		private var toolReturn:Image;
 		private var jewel:Image;
 		private var hidedMap:Image;
@@ -50,9 +49,10 @@ package com.ybcx.huluntears.scenes{
 		private var _loadCompleted:Boolean;
 		
 		private var _mask:Image;
-		
-		
+				
 		private var _toolBar:BottomToolBar;
+		
+		private var _fadeInOut:FadeSequence;
 		
 		
 		/**
@@ -65,8 +65,10 @@ package com.ybcx.huluntears.scenes{
 			_queLoader = new QueueLoader();
 			_queLoader.addEventListener(QueueLoaderEvent.ITEM_COMPLETE, onItemLoaded);
 			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR,onItemError);
+			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_PROGRESS,onQueueProgress);
 			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);
-								
+			
+			//全局鼠标移动判断
 			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
 		}
 		
@@ -80,10 +82,15 @@ package com.ybcx.huluntears.scenes{
 		private function onSceneTouch(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(this);
 			if (touch == null) return;
-			
+			//在一个矩形区域内
 			if(touch.globalX>AppConfig.VIEWPORT_WIDTH-100 && touch.globalY<AppConfig.VIEWPORT_HEIGHT){
 				if(toolReturn) toolReturn.visible = true;
 			}else{
+				if(toolReturn) toolReturn.visible = false;
+			}
+			
+			//如果贴近右边缘，就隐藏
+			if(touch.globalX>AppConfig.VIEWPORT_WIDTH-10){
 				if(toolReturn) toolReturn.visible = false;
 			}
 		}
@@ -101,7 +108,6 @@ package com.ybcx.huluntears.scenes{
 			this.addChild(_touchBoard);
 			
 			_queLoader.addItem(_aobaoFocusPath,null, {title : _aobaoFocusPath});
-//			_queLoader.addItem(_aobaoHeadPath,null, {title : _aobaoHeadPath});
 
 			_queLoader.addItem(_toolReturnPath,null, {title : _toolReturnPath});
 			_queLoader.addItem(_jewelPath,null, {title : _jewelPath});
@@ -145,13 +151,14 @@ package com.ybcx.huluntears.scenes{
 				jewel = new Image(Texture.fromBitmap(evt.content));
 				jewel.addEventListener(TouchEvent.TOUCH, onJewelTouched);
 				this.addChild(jewel);
-				jewel.x = 384;
-				jewel.y = 97;
+				jewel.x = 388;
+				jewel.y = 78;
 				jewel.visible = false;
 			}
 			if(evt.title==_hidedMapPath){
 				hidedMap = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_hidedMapPath);
+				//加点击事件
+				hidedMap.addEventListener(TouchEvent.TOUCH, onHideMapTouched);
 			}
 		}
 		
@@ -165,7 +172,56 @@ package com.ybcx.huluntears.scenes{
 				var bd:BitmapData = new BitmapData(AppConfig.VIEWPORT_WIDTH,AppConfig.VIEWPORT_HEIGHT+100,true,0xCC000000);
 				_mask = new Image(Texture.fromBitmapData(bd));
 				this.addChildAt(_mask,this.getChildIndex(jewel));
+				//卷起大地图
+				moveBgMap();
+				jewel.visible = false;
 			}
+		}
+		
+
+		
+		private function moveBgMap():void{
+			var tween:Tween = new Tween(aobaoFocus, 0.6);
+			tween.animate("y",-300);		
+			tween.onComplete = function():void{
+				fadeinHideMap();
+			}
+			Starling.juggler.add(tween);	
+		}
+		
+		private function fadeinHideMap():void{
+			hidedMap.x = 570;
+			hidedMap.y = 336;
+			this.addChild(hidedMap);
+			//先隐藏
+			hidedMap.alpha = 0;
+			
+			//加三次闪烁效果
+			_fadeInOut = new FadeSequence(hidedMap,0.2,2);
+			_fadeInOut.start();
+		}
+		
+		private function onHideMapTouched(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(hidedMap);
+			if (touch == null) return;
+			
+			if(touch.phase == TouchPhase.ENDED){
+				var move:Tween = new Tween(hidedMap,0.4);
+				move.animate("x", 700);
+				move.animate("y", 450);
+				move.animate("alpha",0);
+				move.animate("scaleX",0.2);
+				move.animate("scaleY",0.2);
+				move.onComplete = function():void{
+					shakeReel();
+				};
+				Starling.juggler.add(move);
+			}
+		}
+		//晃动卷轴
+		private function shakeReel():void{
+			_toolBar.shakeReel();
+			hidedMap.visible = false;
 		}
 		
 		private function startToPlay():void{				
@@ -191,9 +247,7 @@ package com.ybcx.huluntears.scenes{
 			}
 		}
 		
-		private function delayToDo():void{
-			this.removeChild(aobaoFocus);			
-		}
+
 		
 		private function onQueueProgress(evt:QueueLoaderEvent):void{
 			_progressbar.progress = evt.queuepercentage;

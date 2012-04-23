@@ -95,7 +95,7 @@ package com.ybcx.huluntears.scenes{
 		private function onQueueComplete(evt:QueueLoaderEvent):void{
 			this.removeChild(_progressbar);
 			//FIXME, ....TO MODIFY FRAMERATE...
-			_movieByImages = new MovieClip(_frames,12);
+			_movieByImages = new MovieClip(_frames,24);
 			_movieByImages.addEventListener(Event.COMPLETE, onSceneComplete);
 			this.addChild(_movieByImages);
 			//播放

@@ -74,7 +74,9 @@ package com.ybcx.huluntears.map{
 			//建立地图视窗大小，默认在地图左上角
 			//鼠标拖动时改变这个对象
 			_currentViewport = new Rectangle(_initViewportX,_initViewportY,_viewportWidth,_viewportHeight);
-			//添加交互逻辑
+			
+			//FIXME, 暂时不用鼠标拖动操作了，而是感应鼠标位置
+			//2012/04/23
 			this.addEventListener(TouchEvent.TOUCH, onTouch);
 			
 			//后添加玻璃板，铺满整个应用
@@ -94,9 +96,73 @@ package com.ybcx.huluntears.map{
 			this.addChildAt(_tileGrid,1);
 			
 			_loadCompleted = true;
+			
+			//参考线
+//			var bd:BitmapData = new BitmapData(this.stage.stageWidth,2);			
+//			var ref:Image = new Image(Texture.fromBitmapData(bd));
+//			ref.y = _viewportHeight;
+//			this.addChild(ref);
 		}
 		
 		private function onTouch(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(this);
+			if (touch == null) {
+//				trace("do not touched ...");
+				this.removeEventListeners(Event.ENTER_FRAME);
+				return;
+			}
+			//检测边缘宽度
+			var detectWidth:Number = 50;
+			var stepLength:Number = 2;
+			var hSpeed:Number = 0;
+			var vSpeed:Number = 0;
+			
+			//右侧区域
+			if(touch.globalX>AppConfig.VIEWPORT_WIDTH-detectWidth && 
+				touch.globalY<AppConfig.VIEWPORT_HEIGHT-detectWidth &&
+				touch.globalY>detectWidth){
+				hSpeed = -stepLength;
+				vSpeed = 0;
+			}
+			//左侧区域
+			if(touch.globalX<detectWidth && touch.globalY>detectWidth &&
+				touch.globalY<AppConfig.VIEWPORT_HEIGHT-detectWidth){
+				hSpeed = stepLength;
+				vSpeed = 0;
+			}
+			//顶部区域
+			if(touch.globalY<detectWidth){
+				hSpeed = 0;
+				vSpeed = stepLength;
+			}
+			//底部区域
+			if(touch.globalY>AppConfig.VIEWPORT_HEIGHT-detectWidth*1.5){
+				hSpeed = 0;
+				vSpeed = -stepLength;
+			}
+			
+			//中间区域，停止运动
+			if(touch.globalX>detectWidth && touch.globalX<AppConfig.VIEWPORT_WIDTH-detectWidth &&
+				touch.globalY>detectWidth && touch.globalY<AppConfig.VIEWPORT_HEIGHT-detectWidth*1.5){
+				this.removeEventListeners(Event.ENTER_FRAME);
+				hSpeed = 0;
+				vSpeed = 0;
+			}					
+			
+			this.addEventListener(Event.ENTER_FRAME,function():void{
+				moveMap(hSpeed, vSpeed);				
+			});
+			//移动地图的逻辑都在该方法中了				
+			
+		}//end of onTouch function
+		
+		/**
+		 * 鼠标拖动地图移动，暂时不用了
+		 * @deprecated
+		 * 
+		 * 2012/04/23
+		 */ 
+		private function onDragMap(evt:TouchEvent):void{
 			
 			var touch:Touch = evt.getTouch(this);
 			if (touch == null) return;
@@ -134,10 +200,7 @@ package com.ybcx.huluntears.map{
 				_lastDiffX = movedX;
 				_lastDiffY = movedY;
 			}
-			//TODO, 鼠标离开后，依据鼠标位置变化趋势，地图滑动一段距离
-			if(touch.phase == TouchPhase.ENDED){
-				
-			}
+			
 		}
 		
 		/**
@@ -169,8 +232,9 @@ package com.ybcx.huluntears.map{
 		 * 超出边界返回true，没有超出返回false;
 		 */ 
 		private function checkTouchBeyondViewport(tx:Number,ty:Number):Boolean{
+//			trace("ty: "+ty+"/vpheight:"+_viewportHeight);
 			//目前只检查垂直边界
-			if(ty>_viewportHeight) return true;
+			if(ty>_viewportHeight-30) return true;
 			return false;
 		}
 		

@@ -4,15 +4,16 @@ package com.ybcx.huluntears.ui{
 	import com.hydrotik.queueloader.QueueLoaderEvent;
 	import com.ybcx.huluntears.events.GameEvent;
 	
+	import starling.animation.Juggler;
+	import starling.animation.Tween;
+	import starling.core.Starling;
 	import starling.display.Button;
-	import starling.display.Sprite;
 	import starling.display.Image;
-	
-	import starling.events.Event;	
+	import starling.display.Sprite;
+	import starling.events.Event;
 	import starling.events.Touch;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
-	
 	import starling.textures.Texture;
 	
 	/**
@@ -44,9 +45,12 @@ package com.ybcx.huluntears.ui{
 		private var _queLoader:QueueLoader;					
 		private var _loadCompleted:Boolean;
 		
+		//晃动参数
+		private var _shakeFlag:Boolean;
 		
-		public function BottomToolBar(){
+		public function BottomToolBar(shake:Boolean=false){
 			super();
+			_shakeFlag = shake;
 			
 			//下载队列
 			_queLoader = new QueueLoader();
@@ -92,6 +96,26 @@ package com.ybcx.huluntears.ui{
 			this.visible = true;
 		}
 		
+		/**
+		 * 晃动卷轴
+		 */ 
+		public function shakeReel():void{						
+			
+			var rotateRight:Tween = new Tween(_reelTool,0.1);
+			rotateRight.animate("rotation",Math.PI/18);
+			rotateRight.onComplete = function():void{
+				var rotateBack:Tween = new Tween(_reelTool,0.1);
+				rotateBack.animate("rotation",-Math.PI/18);
+				rotateBack.onComplete = function():void{
+					_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
+					_reelTool.y = 464;
+					_reelTool.rotation = 0;
+				}
+				Starling.juggler.add(rotateBack);
+			};
+			Starling.juggler.add(rotateRight);
+		}
+		
 		//单个图片加载完成
 		private function onItemLoaded(evt:QueueLoaderEvent):void{
 			
@@ -115,7 +139,7 @@ package com.ybcx.huluntears.ui{
 				toolLeftArrow = new Image(Texture.fromBitmap(evt.content));
 				//左右箭头
 				toolLeftArrow.x = 10;
-				toolLeftArrow.y = 550;
+				toolLeftArrow.y = 540;
 				this.addChild(toolLeftArrow);
 			}
 			if(evt.title==_toolRightArrowPath){
@@ -134,16 +158,16 @@ package com.ybcx.huluntears.ui{
 				_queLoader.removeItemAt(_queLoader.getLoadedItems().length-1);
 			}
 			//加载完成标志
-			_loadCompleted = true;			
+			_loadCompleted = true;							
 			
 			//卷轴
 			var upTexture:Texture = toolReelUp.texture;
 			var downTexture:Texture = toolReelDown.texture;
 			_reelTool = new Button(upTexture,"",downTexture);
-			_reelTool.y = 462;
+			_reelTool.y = 464;
 			_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
 			this.addChild(_reelTool);
-			
+					
 		}
 		
 		private function onItemError(evt:QueueLoaderEvent):void{

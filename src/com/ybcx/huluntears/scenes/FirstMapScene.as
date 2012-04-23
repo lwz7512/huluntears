@@ -148,6 +148,7 @@ package com.ybcx.huluntears.scenes{
 			for each(var tile:XML in _xmlLoader.nodes){				
 				urls.push(_tilePath+tile.attribute("src"));
 			}
+			trace("map xml loaded, to init mapLayer...");
 			//初始化地图数据，这样地图引擎才能自己工作
 			_backgroundMap.urls = urls;
 		}
