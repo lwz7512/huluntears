@@ -102,10 +102,10 @@ package com.ybcx.huluntears.ui{
 		public function shakeReel():void{						
 			
 			var rotateRight:Tween = new Tween(_reelTool,0.1);
-			rotateRight.animate("rotation",Math.PI/18);
+			rotateRight.animate("rotation",Math.PI/36);
 			rotateRight.onComplete = function():void{
 				var rotateBack:Tween = new Tween(_reelTool,0.1);
-				rotateBack.animate("rotation",-Math.PI/18);
+				rotateBack.animate("rotation",-Math.PI/36);
 				rotateBack.onComplete = function():void{
 					_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
 					_reelTool.y = 464;

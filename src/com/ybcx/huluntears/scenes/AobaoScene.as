@@ -196,7 +196,7 @@ package com.ybcx.huluntears.scenes{
 			//先隐藏
 			hidedMap.alpha = 0;
 			
-			//加三次闪烁效果
+			//加两次闪烁效果
 			_fadeInOut = new FadeSequence(hidedMap,0.2,2);
 			_fadeInOut.start();
 		}
@@ -225,6 +225,9 @@ package com.ybcx.huluntears.scenes{
 		}
 		
 		private function startToPlay():void{				
+			//闪烁宝石			
+			_fadeInOut = new FadeSequence(jewel,0.2,2);
+			_fadeInOut.start();
 			
 			//到大地图场景
 			toolReturn.x = AppConfig.VIEWPORT_WIDTH-60;

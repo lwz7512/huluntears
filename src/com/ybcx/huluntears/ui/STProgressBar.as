@@ -50,7 +50,8 @@ package com.ybcx.huluntears.ui{
 			if(title){
 				var tfTest:flash.text.TextField = new flash.text.TextField();
 				tfTest.text = title;
-				_title = new starling.text.TextField(200, 20,title);				
+				_title = new starling.text.TextField(200, 20,title);	
+//				_title.color = 0x00FF00;
 				_title.x = _width-200 >> 1;
 				_title.y = -20;
 				this.addChild(_title);

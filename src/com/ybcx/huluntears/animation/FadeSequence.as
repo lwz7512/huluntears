@@ -3,13 +3,15 @@ package com.ybcx.huluntears.animation{
 	import flash.utils.Timer;
 	
 	import starling.display.DisplayObject;
+	import starling.events.Event;
+	import starling.events.EventDispatcher;
 	
 	/**
 	 * 闪烁动画，即反复淡入淡出
 	 * 
 	 * 2012/04/23
 	 */ 
-	public class FadeSequence{
+	public class FadeSequence extends EventDispatcher{
 		
 		//闪烁对象
 		private var _target:DisplayObject;
@@ -52,15 +54,17 @@ package com.ybcx.huluntears.animation{
 				_roundCounter ++
 			}
 			if(_roundCounter>0 && _roundCounter/2==_roundNum){
-				_timer.stop();
-				
+				_timer.stop();				
 			}
 			//更新透明度
 			_target.alpha = _lastAlpha;
 			
 			//恢复可见性，准备交互
 			if(!_timer.running){
-				_target.alpha = 0.6;
+				_target.alpha = 1;
+				var end:Event = new Event("complete");
+				this.dispatchEvent(end);
+				dispose();
 			}
 		}
 								
