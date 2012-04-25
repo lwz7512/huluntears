@@ -7,8 +7,8 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.BottomToolBar;
-	import com.ybcx.huluntears.ui.ImagePopup;
-	import com.ybcx.huluntears.ui.RaidersLayer;
+	
+	
 	import com.ybcx.huluntears.ui.STProgressBar;
 	
 	import flash.display.BitmapData;
@@ -34,9 +34,7 @@ package com.ybcx.huluntears.scenes{
 		private var _jewelPath:String = "assets/sceaobao/jewel.png";
 		//隐藏地图
 		private var _hidedMapPath:String = "assets/sceaobao/hidedmap.png";
-		//第一个攻略图路径
-		private var _firstRaiderMapPath:String = "assets/sceaobao/1_tool_Raiders_1_l.png";
-		
+
 		
 		
 		//--------- 图片对象 -------------------
@@ -68,9 +66,7 @@ package com.ybcx.huluntears.scenes{
 		//隐藏攻略图与敖包Y值差
 		private var _hideMapYDiff:Number = 0;
 		
-		//卷轴打开的攻略地图
-		private var _raiderLayer:RaidersLayer;
-		
+
 		
 		
 		
@@ -91,34 +87,43 @@ package com.ybcx.huluntears.scenes{
 			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
 		}
 		
-		public function set toolbar(tb:BottomToolBar):void{
-			_toolBar = tb;
-			_toolBar.addEventListener(GameEvent.REEL_TRIGGERD,onRaiderOpen);
-		}
-		
-		private function onRaiderOpen(evt:GameEvent):void{
-			if(_raiderLayer && this.contains(_raiderLayer)) return;
+		override protected function onStage(evt:Event):void{
+			super.onStage(evt);					
 			
-			var index:int = evt.context as int;
-			_raiderLayer = new RaidersLayer(145,454);
-			_raiderLayer.y = 50;
-			_raiderLayer.x = this.stage.stageWidth-_raiderLayer.width >> 1;
-			//显示第一个攻略
-			_raiderLayer.availableRaider(index);
-			_raiderLayer.addEventListener(GameEvent.RAIDER_TOUCHED,onRaiderTouched);
-			this.addChild(_raiderLayer);
+			if(_loadCompleted) return;
+			
+			//加个玻璃板，好响应鼠标动作
+			//后添加玻璃板，铺满整个应用
+			var bd:BitmapData = new BitmapData(this.stage.stageWidth,this.stage.stageHeight,false,0x000000);						
+			var tx:Texture = Texture.fromBitmapData(bd);
+			_touchBoard = new Image(tx);
+			this.addChild(_touchBoard);
+			
+			_queLoader.addItem(_aobaoFocusPath,null, {title : _aobaoFocusPath});
+			
+			_queLoader.addItem(_toolReturnPath,null, {title : _toolReturnPath});
+			_queLoader.addItem(_jewelPath,null, {title : _jewelPath});
+			_queLoader.addItem(_hidedMapPath,null, {title : _hidedMapPath});
+			
+			//发出请求
+			_queLoader.execute();
+			
+			_progressbar = new STProgressBar(0x666666,this.stage.stageWidth,2,"载入敖包场景...");
+			//放在舞台中央
+			_progressbar.x = 0;
+			_progressbar.y = this.stage.stageHeight >>1;
+			this.addChild(_progressbar);
+						
 		}
-		
-		private function onRaiderTouched(evt:GameEvent):void{
-			if(evt.context==1){//打开第一个地图
-				var firstRaider:ImagePopup = new ImagePopup(482,530);
-				firstRaider.imgPath = _firstRaiderMapPath;
-				firstRaider.x = this.stage.stageWidth-firstRaider.width >> 1;
-				firstRaider.y = 50;
-				firstRaider.maskColor = 0xCC000000;
-				this.addChild(firstRaider);
-			}
-		}
+
+		/**
+		 * 不能添加事件，在Game中添加
+		 */ 
+		public function set toolbar(tb:BottomToolBar):void{
+			_toolBar = tb;			
+		}		
+
+
 		
 		/**
 		 * 处理返回按钮
@@ -185,35 +190,7 @@ package com.ybcx.huluntears.scenes{
 			
 		}
 		
-		override protected function onStage(evt:Event):void{
-			super.onStage(evt);
-			
-			if(_loadCompleted) return;
-			
-			//加个玻璃板，好响应鼠标动作
-			//后添加玻璃板，铺满整个应用
-			var bd:BitmapData = new BitmapData(this.stage.stageWidth,this.stage.stageHeight,false,0x000000);						
-			var tx:Texture = Texture.fromBitmapData(bd);
-			_touchBoard = new Image(tx);
-			this.addChild(_touchBoard);
-			
-			_queLoader.addItem(_aobaoFocusPath,null, {title : _aobaoFocusPath});
 
-			_queLoader.addItem(_toolReturnPath,null, {title : _toolReturnPath});
-			_queLoader.addItem(_jewelPath,null, {title : _jewelPath});
-			_queLoader.addItem(_hidedMapPath,null, {title : _hidedMapPath});
-			
-			//发出请求
-			_queLoader.execute();
-			
-			_progressbar = new STProgressBar(0x666666,this.stage.stageWidth,2,"载入敖包场景...");
-			//放在舞台中央
-			_progressbar.x = 0;
-			_progressbar.y = this.stage.stageHeight >>1;
-			this.addChild(_progressbar);
-			
-			
-		}
 		
 		//单个图片加载完成
 		private function onItemLoaded(evt:QueueLoaderEvent):void{

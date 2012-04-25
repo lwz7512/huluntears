@@ -6,6 +6,8 @@ package{
 	import com.ybcx.huluntears.scenes.StartMovieScene;
 	import com.ybcx.huluntears.scenes.WelcomeScene;
 	import com.ybcx.huluntears.ui.BottomToolBar;
+	import com.ybcx.huluntears.ui.ImagePopup;
+	import com.ybcx.huluntears.ui.RaidersLayer;
 	
 	import starling.animation.Transitions;
 	import starling.animation.Tween;
@@ -25,6 +27,9 @@ package{
 	 */ 
 	public class Game extends Sprite{
 		
+		//第一个攻略图路径
+		private var _firstRaiderMapPath:String = "assets/sceaobao/1_tool_Raiders_1_l.png";
+		
 		//全局的道具栏
 		private var _uniToolBar:BottomToolBar;
 		
@@ -33,6 +38,8 @@ package{
 		private var aobaoScene:AobaoScene;
 		private var firstMapScene:FirstMapScene;
 		
+		//卷轴打开的攻略地图
+		private var _raiderLayer:RaidersLayer;
 		
 		
 		public function Game(){
@@ -76,9 +83,33 @@ package{
 			this.addChild(_uniToolBar);
 			//FIXME, 先隐藏
 			_uniToolBar.visible = false;
+			_uniToolBar.addEventListener(GameEvent.REEL_TRIGGERD,onWalkThroughOpen);
 		}
 		
-
+		private function onWalkThroughOpen(evt:GameEvent):void{
+			if(_raiderLayer && this.contains(_raiderLayer)) return;
+			
+			var index:int = evt.context as int;
+			_raiderLayer = new RaidersLayer(145,454);
+			_raiderLayer.y = 50;
+			_raiderLayer.x = this.stage.stageWidth-_raiderLayer.width >> 1;
+			//显示第一个攻略
+			_raiderLayer.availableRaider(index);
+			_raiderLayer.addEventListener(GameEvent.RAIDER_TOUCHED,onSubMapTouched);
+			this.addChild(_raiderLayer);
+		}
+		
+		
+		private function onSubMapTouched(evt:GameEvent):void{
+			if(evt.context==1){//打开第一个地图
+				var firstWalkThrough:ImagePopup = new ImagePopup(482,530);
+				firstWalkThrough.imgPath = _firstRaiderMapPath;
+				firstWalkThrough.x = this.stage.stageWidth-firstWalkThrough.width >> 1;
+				firstWalkThrough.y = 20;
+				firstWalkThrough.maskColor = 0xCC000000;
+				this.addChild(firstWalkThrough);
+			}
+		}
 		
 		private function gotoAobao(evt:Event):void{
 			this.removeChild(welcomeScene,true);
@@ -90,6 +121,7 @@ package{
 			aobaoScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
 		}
 		
+		//去第一关大地图
 		private function gotoFirstMap(evt:Event):void{
 			this.removeChild(aobaoScene);
 						
@@ -99,13 +131,28 @@ package{
 				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE, backtoAobao);				
 			}
 			this.addChild(firstMapScene);
+			
+			//新出的淡入
+			firstMapScene.alpha = 0;
+			var fadeIn:Tween = new Tween(firstMapScene,0.6);
+			fadeIn.animate("alpha",1);
+			Starling.juggler.add(fadeIn);
+			
+			
 			_uniToolBar.showToolbar();			
 		}
-		
+		//从大地图返回敖包特写
 		private function backtoAobao(evt:Event):void{
 			this.removeChild(firstMapScene);
 			
 			this.addChild(aobaoScene);
+			
+			//新出的淡入
+			aobaoScene.alpha = 0;
+			var fadeIn:Tween = new Tween(aobaoScene,0.6);
+			fadeIn.animate("alpha",1);
+			Starling.juggler.add(fadeIn);
+			
 			_uniToolBar.showToolbar();
 		}
 		

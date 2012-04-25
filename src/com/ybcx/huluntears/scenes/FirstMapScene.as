@@ -7,6 +7,7 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.map.MapLayer;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.BottomToolBar;
+	import com.ybcx.huluntears.ui.RaidersLayer;
 	
 	import flash.events.Event;
 	import flash.geom.Point;
@@ -42,6 +43,8 @@ package com.ybcx.huluntears.scenes{
 		private var _queLoader:QueueLoader;
 		private var _loadCompleted:Boolean;
 		
+		//卷轴打开的攻略地图
+		private var _raiderLayer:RaidersLayer;
 		
 		
 		public function FirstMapScene(){
@@ -54,7 +57,7 @@ package com.ybcx.huluntears.scenes{
 		
 		//FIXME, 该场景有两类Event，所以要加包名
 		override protected function onStage(evt:starling.events.Event):void{
-			super.onStage(evt);
+			super.onStage(evt);	
 			
 			if(_loadCompleted) return;
 			
@@ -85,6 +88,7 @@ package com.ybcx.huluntears.scenes{
 			//显示道具栏
 			_toolBar.showToolbar();
 		}
+		
 		
 		/**
 		 * 处理返回按钮

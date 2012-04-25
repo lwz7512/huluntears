@@ -14,11 +14,18 @@ package com.ybcx.huluntears.scenes.base{
 			super();
 			
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
+			this.addEventListener(Event.REMOVED_FROM_STAGE, offStage);
 		}
 		/**
 		 * 延迟生成子对象方法
 		 */ 
 		protected function onStage(evt:Event):void{
+			this.removeEventListener(evt.type, arguments.callee);
+		}
+		/**
+		 * 清理资源方法
+		 */
+		protected function offStage(evt:Event):void{
 			this.removeEventListener(evt.type, arguments.callee);
 		}
 		
