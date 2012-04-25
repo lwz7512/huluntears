@@ -19,7 +19,7 @@ package com.ybcx.huluntears.ui{
 			super(width, heigh);
 		}
 		
-		override public function createPopupContent():void{
+		override protected function createPopupContent():void{
 			var startX:Number = 50;
 			var startY:Number = 40;
 			var rowHeight:Number = 30;

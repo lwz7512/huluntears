@@ -26,7 +26,7 @@ package com.ybcx.huluntears.ui{
 		
 		//道具栏背景
 		private var _toolBackgroundPath:String = "assets/sceaobao/Toolbar.png";
-		//卷轴
+		//卷轴图片
 		private var _toolReelUpPath:String = "assets/sceaobao/Toolbar_Reel_1.png";
 		private var _toolReelDownPath:String = "assets/sceaobao/Toolbar_Reel_2.png";
 		//左右箭头
@@ -39,18 +39,22 @@ package com.ybcx.huluntears.ui{
 		private var toolLeftArrow:Image;
 		private var toolRightArrow:Image;
 		
+		//卷轴按钮
 		private var _reelTool:Button;
 		
 		//下载队列
 		private var _queLoader:QueueLoader;					
 		private var _loadCompleted:Boolean;
 		
-		//晃动参数
-		private var _shakeFlag:Boolean;
+		//依靠这个值，来显示攻略图
+		private var _raiderIndex:int = 0;
 		
-		public function BottomToolBar(shake:Boolean=false){
+		
+		
+		
+		public function BottomToolBar(){
 			super();
-			_shakeFlag = shake;
+			
 			
 			//下载队列
 			_queLoader = new QueueLoader();
@@ -99,17 +103,18 @@ package com.ybcx.huluntears.ui{
 		/**
 		 * 晃动卷轴
 		 */ 
-		public function shakeReel():void{						
-			
+		public function shakeReel():void{	
+			_raiderIndex ++;
 			var rotateRight:Tween = new Tween(_reelTool,0.1);
 			rotateRight.animate("rotation",Math.PI/36);
 			rotateRight.onComplete = function():void{
 				var rotateBack:Tween = new Tween(_reelTool,0.1);
 				rotateBack.animate("rotation",-Math.PI/36);
 				rotateBack.onComplete = function():void{
+					//恢复初始状态
 					_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
 					_reelTool.y = 464;
-					_reelTool.rotation = 0;
+					_reelTool.rotation = 0;					
 				}
 				Starling.juggler.add(rotateBack);
 			};
@@ -128,12 +133,10 @@ package com.ybcx.huluntears.ui{
 				this.addChild(toolBackground);
 			}
 			if(evt.title==_toolReelUpPath){
-				toolReelUp = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolReelUpPath);
+				toolReelUp = new Image(Texture.fromBitmap(evt.content));				
 			}
 			if(evt.title==_toolReelDownPath){
-				toolReelDown = new Image(Texture.fromBitmap(evt.content));
-				trace("loaded: "+_toolReelDownPath);
+				toolReelDown = new Image(Texture.fromBitmap(evt.content));				
 			}
 			if(evt.title==_toolLeftArrowPath){
 				toolLeftArrow = new Image(Texture.fromBitmap(evt.content));
@@ -166,6 +169,10 @@ package com.ybcx.huluntears.ui{
 			_reelTool = new Button(upTexture,"",downTexture);
 			_reelTool.y = 464;
 			_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
+			_reelTool.addEventListener(Event.TRIGGERED,function():void{
+				var reelOpen:GameEvent = new GameEvent(GameEvent.REEL_TRIGGERD,_raiderIndex);
+				dispatchEvent(reelOpen);
+			});
 			this.addChild(_reelTool);
 					
 		}

@@ -9,6 +9,7 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.ui.BottomToolBar;
 	
 	import flash.events.Event;
+	import flash.geom.Point;
 	
 	import starling.animation.Tween;
 	import starling.core.Starling;
@@ -25,14 +26,14 @@ package com.ybcx.huluntears.scenes{
 		
 		private var _firstMapConfig:String = "assets/sceaobao/firstmap.xml";
 		private var _tilePath:String = "assets/sceaobao/tiles/";
-		private var _backAobaoPath:String = "assets/firstmap/tool_back.png";
+		private var _backAobaoPath:String = "assets/sceaobao/aobao_head.png";
 			
 		private var _xmlLoader:XMLoader;
 		private var _loadingTF:TextField;
 		
 		private var _backgroundMap:MapLayer;		
 
-		//返回按钮
+		//敖包特写缩影
 		private var backAobao:Image;
 		//道具栏
 		private var _toolBar:BottomToolBar;
@@ -91,12 +92,7 @@ package com.ybcx.huluntears.scenes{
 		private function onSceneTouch(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(this);
 			if (touch == null) return;
-			
-			if(touch.globalX<100 && touch.globalY<AppConfig.VIEWPORT_HEIGHT){
-				if(backAobao) backAobao.visible = true;
-			}else{
-				if(backAobao) backAobao.visible = false;
-			}
+						
 		}
 		
 		//单个图片加载完成
@@ -113,17 +109,10 @@ package com.ybcx.huluntears.scenes{
 			}
 			
 			_loadCompleted = true;
-			
-	
-			//返回箭头
-			backAobao.x = 10;
-			backAobao.y = AppConfig.VIEWPORT_HEIGHT >> 1;
-			this.addChild(backAobao);
-			
-			backAobao.visible = false;
-			
+			//添加交互											
 			backAobao.addEventListener(TouchEvent.TOUCH, onBackTouched);
-			
+			//放到地图中
+			_backgroundMap.addItemAt(backAobao,new Point(390,181));
 		}
 		
 		private function onBackTouched(evt:TouchEvent):void{

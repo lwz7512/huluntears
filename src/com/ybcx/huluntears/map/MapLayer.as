@@ -7,8 +7,11 @@ package com.ybcx.huluntears.map{
 	
 	import flash.display.BitmapData;
 	import flash.display.Shape;
+	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.utils.Dictionary;
 	
+	import starling.display.DisplayObject;
 	import starling.display.Image;
 	import starling.display.Quad;
 	import starling.display.Sprite;
@@ -26,7 +29,8 @@ package com.ybcx.huluntears.map{
 	 */ 
 	public class MapLayer extends Sprite{
 		
-		
+		//初始化结束标志
+		private var _loadCompleted:Boolean;
 		
 		private var _tileEngine:MapEngine;
 		private var _tileGrid:TileGrid;
@@ -54,8 +58,16 @@ package com.ybcx.huluntears.map{
 		//随鼠标拖拽不断更新的视窗大小，即地图看见窗口在整个地图中的位置
 		//这个区域作为瓦片网格显示内容的范围
 		private var _currentViewport:Rectangle;
+		//上一次视窗位置，移动道具时计算偏移量
+		private var _lastViewport:Rectangle;
 		
-		private var _loadCompleted:Boolean;
+		
+		//道具容器，位于顶部
+		private var _itemsContainer:Sprite;
+		//道具位置管理
+		private var _itemsPositions:Dictionary;
+		
+		
 		
 		public function MapLayer(){
 			super();
@@ -67,30 +79,49 @@ package com.ybcx.huluntears.map{
 			
 			if(_loadCompleted) return;
 			
+			_itemsPositions = new Dictionary();
+			
 			//黑色背景色
 			var background:Quad = new Quad(_viewportWidth,_viewportHeight+100,0x000000);
 			this.addChild(background);
 			
 			//建立地图视窗大小，默认在地图左上角
 			//鼠标拖动时改变这个对象
-			_currentViewport = new Rectangle(_initViewportX,_initViewportY,_viewportWidth,_viewportHeight);
-			
-			//FIXME, 暂时不用鼠标拖动操作了，而是感应鼠标位置
-			//2012/04/23
-			this.addEventListener(TouchEvent.TOUCH, onTouch);
+			_currentViewport = new Rectangle(_initViewportX,_initViewportY,_viewportWidth,_viewportHeight);			
 			
 			//后添加玻璃板，铺满整个应用
 			var bd:BitmapData = new BitmapData(this.stage.stageWidth,this.stage.stageHeight,true,0x01FFFFFF);						
 			var tx:Texture = Texture.fromBitmapData(bd);
 			_touchBoard = new Image(tx);
 			this.addChild(_touchBoard);
+			
+			//添加道具层
+			//2012/04/24
+			_itemsContainer = new Sprite();
+			this.addChild(_itemsContainer);
+			
+			//FIXME, 暂时不用鼠标拖动操作了，而是感应鼠标位置
+			//2012/04/23
+			this.addEventListener(TouchEvent.TOUCH, onTouch);
+		}
+		
+		/**
+		 * 添加道具，使得道具与地图背景同时移动
+		 */ 
+		public function addItemAt(item:DisplayObject, pos:Point):void{
+			item.x = pos.x-_currentViewport.x;
+			item.y = pos.y-_currentViewport.y;
+			//放到道具容器中
+			_itemsContainer.addChild(item);
+			//记下位置，其实也没用到
+			_itemsPositions[item] = new Point(pos.x-_currentViewport.x,pos.y-_currentViewport.y);			
 		}
 		
 		public function set urls(titleUrls:Vector.<String>):void{			
 			_tileEngine = new MapEngine(titleUrls);
 			//先添加TileGrid，模拟手势移动
 			_tileGrid = new TileGrid(_tileEngine.boundary);
-			//SHOW THE INIT VIEWPORT...
+			//开始放置时，静止，没有偏移量
 			moveMap(0,0);
 			//FIXME, 放在背景之上
 			this.addChildAt(_tileGrid,1);
@@ -141,18 +172,19 @@ package com.ybcx.huluntears.map{
 				vSpeed = -stepLength;
 			}
 			
+			this.addEventListener(Event.ENTER_FRAME,function():void{
+				//移动地图的逻辑都在该方法中了				
+				moveMap(hSpeed, vSpeed);				
+			});
+			
 			//中间区域，停止运动
 			if(touch.globalX>detectWidth && touch.globalX<AppConfig.VIEWPORT_WIDTH-detectWidth &&
 				touch.globalY>detectWidth && touch.globalY<AppConfig.VIEWPORT_HEIGHT-detectWidth*1.5){
+				//必须移除监听，才能停止运动
 				this.removeEventListeners(Event.ENTER_FRAME);
 				hSpeed = 0;
 				vSpeed = 0;
-			}					
-			
-			this.addEventListener(Event.ENTER_FRAME,function():void{
-				moveMap(hSpeed, vSpeed);				
-			});
-			//移动地图的逻辑都在该方法中了				
+			}								
 			
 		}//end of onTouch function
 		
@@ -208,6 +240,9 @@ package com.ybcx.huluntears.map{
 		 * 渲染的前提是地图引擎能根据视窗的大小获得相应的材质图片
 		 */ 
 		private function moveMap(diffX:Number, diffY:Number):void{
+			//先记下上次的视窗位置
+			_lastViewport = new Rectangle(_currentViewport.x,_currentViewport.y,_viewportWidth,_viewportHeight);
+			
 			//重新计算视窗
 			var newvpX:Number = _currentViewport.x-diffX;
 			var newvpY:Number = _currentViewport.y-diffY;
@@ -226,6 +261,18 @@ package com.ybcx.huluntears.map{
 			var searchedTiles:Vector.<Tile> = _tileEngine.searchTilesSyncBy(_currentViewport);
 			//不移动_tileGrid位置，只修改视窗对象，重新渲染
 			_tileGrid.show(searchedTiles,_currentViewport);
+			
+			var moveDiffX:Number = _lastViewport.x-_currentViewport.x;
+			var moveDiffY:Number = _lastViewport.y-_currentViewport.y;			
+			//为道具改变位置
+			moveItems(moveDiffX, moveDiffY);
+		}
+		
+		private function moveItems(moveDiffX:Number, moveDiffY:Number):void{
+			for(var image:Object in _itemsPositions){
+				image.x += moveDiffX;
+				image.y += moveDiffY;
+			}
 		}
 		
 		/**

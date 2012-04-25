@@ -10,7 +10,12 @@ package com.ybcx.huluntears.ui{
 	import starling.text.TextField;
 	import starling.textures.Texture;
 	
-	
+	/**
+	 * Starling框架下的简单进度条
+	 * 取名STxxx，意思是基于Starling引擎
+	 * 
+	 * 2012/04/09
+	 */ 
 	public class STProgressBar extends Sprite{
 		
 		private var _color:uint;
@@ -27,11 +32,7 @@ package com.ybcx.huluntears.ui{
 		
 		private var _title:starling.text.TextField;
 		
-		/**
-		 * Starling框架下的简单进度条
-		 * 
-		 * 2012/04/09
-		 */ 
+		
 		public function STProgressBar(rgb:uint=0xCCCCCC, width:Number=100, height:Number=2, title:String="loading..."){
 			super();
 			

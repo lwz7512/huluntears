@@ -18,7 +18,7 @@ package{
 		
 		public function Startup(){			
 			
-			addChild ( new Stats() );
+			addChild (new Stats());
 			
 			this.addEventListener(Event.ADDED_TO_STAGE, onStageReady);
 		}

@@ -34,9 +34,9 @@ package com.ybcx.huluntears.animation{
 		/**
 		 * @param target 闪烁的对象
 		 * @param roundTime 一次闪烁经历的时长，秒为单位
-		 * @param roundNum 闪烁次数
+		 * @param roundNum 闪烁次数，如果为0，表示一直闪烁
 		 */ 
-		public function FadeSequence(target:DisplayObject, roundTime:Number, roundNum:int){
+		public function FadeSequence(target:DisplayObject, roundTime:Number, roundNum:int=0){
 			_target = target;
 			_roundTime = roundTime;
 			_roundNum = roundNum;
