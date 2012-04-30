@@ -28,7 +28,7 @@ package com.ybcx.huluntears.scenes{
 		
 		//---------- 图片路径 ----------------------
 		private var _aobaoFocusPath:String = "assets/sceaobao/aobao_focus.png";
-		//返回大地图场景箭头
+		//进入大地图场景箭头
 		private var _toolReturnPath:String = "assets/sceaobao/tool_return.png";
 		//宝石
 		private var _jewelPath:String = "assets/sceaobao/jewel.png";
@@ -39,7 +39,7 @@ package com.ybcx.huluntears.scenes{
 		
 		//--------- 图片对象 -------------------
 		private var aobaoFocus:Image;
-		private var toolReturn:Image;
+		private var goMap:Image;
 		private var jewel:Image;
 		private var hidedMap:Image;
 		
@@ -82,9 +82,7 @@ package com.ybcx.huluntears.scenes{
 			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR,onItemError);
 			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_PROGRESS,onQueueProgress);
 			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);
-			
-			//全局鼠标移动判断
-			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
+						
 		}
 		
 		override protected function onStage(evt:Event):void{
@@ -108,12 +106,7 @@ package com.ybcx.huluntears.scenes{
 			//发出请求
 			_queLoader.execute();
 			
-			_progressbar = new STProgressBar(0x666666,this.stage.stageWidth,2,"载入敖包场景...");
-			//放在舞台中央
-			_progressbar.x = 0;
-			_progressbar.y = this.stage.stageHeight >>1;
-			this.addChild(_progressbar);
-						
+			
 		}
 
 		/**
@@ -127,8 +120,8 @@ package com.ybcx.huluntears.scenes{
 		
 		/**
 		 * 处理返回按钮
-		 */ 
-		private function onSceneTouch(evt:TouchEvent):void{
+		 */
+		override protected function onSceneTouch(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(this);
 			if (touch == null) {
 				//停止运动
@@ -137,14 +130,14 @@ package com.ybcx.huluntears.scenes{
 			}
 			//在一个矩形区域内
 			if(touch.globalX>AppConfig.VIEWPORT_WIDTH-100 && touch.globalY<AppConfig.VIEWPORT_HEIGHT){
-				if(toolReturn) toolReturn.visible = true;
+				if(goMap) goMap.visible = true;
 			}else{
-				if(toolReturn) toolReturn.visible = false;
+				if(goMap) goMap.visible = false;
 			}
 			
 			//如果贴近右边缘，就隐藏
 			if(touch.globalX>AppConfig.VIEWPORT_WIDTH-10){
-				if(toolReturn) toolReturn.visible = false;
+				if(goMap) goMap.visible = false;
 			}
 			//打开开关才能运动
 			if(!_moveOpenFlag) return;
@@ -201,7 +194,7 @@ package com.ybcx.huluntears.scenes{
 			}
 
 			if(evt.title==_toolReturnPath){
-				toolReturn = new Image(Texture.fromBitmap(evt.content));				
+				goMap = new Image(Texture.fromBitmap(evt.content));				
 			}
 			if(evt.title==_jewelPath){
 				jewel = new Image(Texture.fromBitmap(evt.content));
@@ -279,31 +272,22 @@ package com.ybcx.huluntears.scenes{
 		}
 		
 		
-		private function onReturnTouched(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(toolReturn);
-			if (touch == null) return;
-			
-			if(touch.phase == TouchPhase.ENDED){
-				var end:GameEvent = new GameEvent(GameEvent.SWITCH_SCENE);
-				this.dispatchEvent(end);
-			}
-		}
-		
-
-		
 		private function onQueueProgress(evt:QueueLoaderEvent):void{
-			_progressbar.progress = evt.queuepercentage;
+			var progress:GameEvent = new GameEvent(GameEvent.LOADING_PROGRESS,evt.percentage);
+			this.dispatchEvent(progress);
 		}
 		
 		
 		//清理队列
 		private function onQueComplete(evt:QueueLoaderEvent):void{
+			var complete:GameEvent = new GameEvent(GameEvent.LOADING_COMPLETE);
+			this.dispatchEvent(complete);
+			
 			while(_queLoader.getLoadedItems().length){
 				_queLoader.removeItemAt(_queLoader.getLoadedItems().length-1);
 			}
 			
 			_loadCompleted = true;
-			this.removeChild(_progressbar);
 			
 			//显示道具栏
 			_toolBar.showToolbar();
@@ -317,16 +301,26 @@ package com.ybcx.huluntears.scenes{
 			_fadeInOut.start();
 			
 			//到大地图场景
-			toolReturn.x = AppConfig.VIEWPORT_WIDTH-60;
-			toolReturn.y = AppConfig.VIEWPORT_HEIGHT >> 1;
-			this.addChild(toolReturn);
+			goMap.x = AppConfig.VIEWPORT_WIDTH-40;
+			goMap.y = AppConfig.VIEWPORT_HEIGHT >> 1;
+			this.addChild(goMap);
 			
 			//默认先隐藏，鼠标移动到附近，才显示
-			toolReturn.visible = false;
-			toolReturn.addEventListener(TouchEvent.TOUCH, onReturnTouched);
+			goMap.visible = false;
+			goMap.addEventListener(TouchEvent.TOUCH, onMapTouched);
 			
 		}
 
+		
+		private function onMapTouched(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(goMap);
+			if (touch == null) return;
+			
+			if(touch.phase == TouchPhase.ENDED){
+				var end:GameEvent = new GameEvent(GameEvent.SWITCH_SCENE);
+				this.dispatchEvent(end);
+			}
+		}
 		
 		private function onItemError(evt:QueueLoaderEvent):void{
 			trace("item load error..."+evt.title);

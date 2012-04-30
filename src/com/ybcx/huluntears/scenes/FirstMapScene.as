@@ -27,15 +27,19 @@ package com.ybcx.huluntears.scenes{
 		
 		private var _firstMapConfig:String = "assets/sceaobao/firstmap.xml";
 		private var _tilePath:String = "assets/sceaobao/tiles/";
-		private var _backAobaoPath:String = "assets/sceaobao/aobao_head.png";
-			
+		private var _aobaoHeadPath:String = "assets/sceaobao/aobao_head.png";
+		private var _backToAobaoPath:String = "assets/firstmap/tool_back.png";
+		
+		
 		private var _xmlLoader:XMLoader;
 		private var _loadingTF:TextField;
 		
 		private var _backgroundMap:MapLayer;		
 
 		//敖包特写缩影
-		private var backAobao:Image;
+		private var aobaoHead:Image;
+		//返回按钮
+		private var back:Image;
 		//道具栏
 		private var _toolBar:BottomToolBar;
 		
@@ -49,6 +53,27 @@ package com.ybcx.huluntears.scenes{
 		
 		public function FirstMapScene(){
 			super();
+			
+		}
+		
+		//判断返回箭头的是否出现
+		override protected function onTouching(touch:Touch):void{
+			if(!touch){
+				if(back) back.visible = false;
+				return;
+			}
+			
+			//在一个矩形区域内
+			if(touch.globalX<100 && touch.globalY<AppConfig.VIEWPORT_HEIGHT){
+				if(back) back.visible = true;
+			}else{
+				if(back) back.visible = false;
+			}
+			
+			//如果贴近右边缘，就隐藏
+			if(touch.globalX<10){
+				if(back) back.visible = false;
+			}
 		}
 		
 		public function set toolbar(tb:BottomToolBar):void{
@@ -80,29 +105,39 @@ package com.ybcx.huluntears.scenes{
 			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR,onItemError);
 			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);		
 			
-			_queLoader.addItem(_backAobaoPath,null, {title : _backAobaoPath});			
-			_queLoader.execute();
+			_queLoader.addItem(_aobaoHeadPath,null, {title : _aobaoHeadPath});
+			_queLoader.addItem(_backToAobaoPath,null, {title : _backToAobaoPath});
 			
-			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
+			
+			_queLoader.execute();
+						
 			
 			//显示道具栏
 			_toolBar.showToolbar();
 		}
-		
-		
-		/**
-		 * 处理返回按钮
-		 */ 
-		private function onSceneTouch(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(this);
-			if (touch == null) return;
-						
-		}
+
 		
 		//单个图片加载完成
 		private function onItemLoaded(evt:QueueLoaderEvent):void{
-			if(evt.title==_backAobaoPath){
-				backAobao = new Image(Texture.fromBitmap(evt.content));
+			if(evt.title==_aobaoHeadPath){
+				aobaoHead = new Image(Texture.fromBitmap(evt.content));
+			}
+			if(evt.title==_backToAobaoPath){
+				back = new Image(Texture.fromBitmap(evt.content));
+				back.addEventListener(TouchEvent.TOUCH,onBackTouch);
+				this.addChild(back);
+				back.visible = false;
+				back.y = AppConfig.VIEWPORT_HEIGHT >> 1;
+			}
+		}
+		
+		private function onBackTouch(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(back);
+			if (touch == null) return;
+			
+			if(touch.phase==TouchPhase.ENDED){
+				var end:GameEvent = new GameEvent(GameEvent.SWITCH_SCENE);
+				this.dispatchEvent(end);				
 			}
 		}
 		
@@ -113,21 +148,12 @@ package com.ybcx.huluntears.scenes{
 			}
 			
 			_loadCompleted = true;
-			//添加交互											
-			backAobao.addEventListener(TouchEvent.TOUCH, onBackTouched);
+			
 			//放到地图中
-			_backgroundMap.addItemAt(backAobao,new Point(390,181));
+			_backgroundMap.addItemAt(aobaoHead,new Point(390,181));
 		}
 		
-		private function onBackTouched(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(backAobao);
-			if (touch == null) return;
-			
-			if(touch.phase == TouchPhase.ENDED){
-				var end:GameEvent = new GameEvent(GameEvent.SWITCH_SCENE);
-				this.dispatchEvent(end);
-			}
-		}
+
 		
 		private function onItemError(evt:QueueLoaderEvent):void{
 			trace("item load error..."+evt.title);

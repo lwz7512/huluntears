@@ -2,7 +2,6 @@ package com.ybcx.huluntears.ui{
 	
 	import flash.display.BitmapData;
 	import flash.display.Shape;
-	import flash.text.TextField;
 	
 	import starling.display.DisplayObjectContainer;
 	import starling.display.Image;
@@ -42,15 +41,13 @@ package com.ybcx.huluntears.ui{
 			//进度条高度
 			_height = height;
 			//初始化时，有一个画满的背景条
-			_bufferBitmap = new BitmapData(width,height,false, 0xF5F5F5);
+			_bufferBitmap = new BitmapData(width,height,true, 0x33F5F5F5);
 			_texture = Texture.fromBitmapData(_bufferBitmap);
 			_image = new Image(_texture);				
 			this.addChild(_image);
 			
 			//提示
-			if(title){
-				var tfTest:flash.text.TextField = new flash.text.TextField();
-				tfTest.text = title;
+			if(title){				
 				_title = new starling.text.TextField(200, 20,title);	
 //				_title.color = 0x00FF00;
 				_title.x = _width-200 >> 1;

@@ -5,13 +5,17 @@ package{
 	import com.ybcx.huluntears.scenes.FirstMapScene;
 	import com.ybcx.huluntears.scenes.StartMovieScene;
 	import com.ybcx.huluntears.scenes.WelcomeScene;
+	import com.ybcx.huluntears.ui.AboutUsLayer;
 	import com.ybcx.huluntears.ui.BottomToolBar;
 	import com.ybcx.huluntears.ui.ImagePopup;
 	import com.ybcx.huluntears.ui.RaidersLayer;
+	import com.ybcx.huluntears.ui.STLoadingView;
 	
 	import starling.animation.Transitions;
 	import starling.animation.Tween;
 	import starling.core.Starling;
+	import starling.display.DisplayObject;
+	import starling.display.Quad;
 	import starling.display.Sprite;
 	import starling.events.Event;
 	import starling.events.Touch;
@@ -26,36 +30,29 @@ package{
 	 * 2012/04/06
 	 */ 
 	public class Game extends Sprite{
-		
-		//第一个攻略图路径
-		private var _firstRaiderMapPath:String = "assets/sceaobao/1_tool_Raiders_1_l.png";
+				
+		//加载画面
+		private var _loadingView:STLoadingView;
 		
 		//全局的道具栏
 		private var _uniToolBar:BottomToolBar;
+		//卷轴打开的攻略地图
+		private var _raiderLayer:RaidersLayer;
+		//第一个攻略图路径
+		private var _firstRaiderMapPath:String = "assets/sceaobao/1_tool_Raiders_1_l.png";
+		//关于
+		private var aboutusLayer:AboutUsLayer;
+		
 		
 		private var startScene:StartMovieScene;
-		private var welcomeScene:WelcomeScene;
 		private var aobaoScene:AobaoScene;
 		private var firstMapScene:FirstMapScene;
 		
-		//卷轴打开的攻略地图
-		private var _raiderLayer:RaidersLayer;
 		
 		
 		public function Game(){
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
-//			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
-		}
-		
-		private function onStage(evt:Event):void{
-								
-			//1、显示开场动画场景
-			
-			startScene = new StartMovieScene();
-			startScene.addEventListener(GameEvent.SWITCH_SCENE, gotoWelcome);
-			startScene.addEventListener(GameEvent.MOVIE_STARTED, startLoadToolbar);
-			this.addChild(startScene);	
-						
+			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
 		}
 		
 		private function onSceneTouch(evt:TouchEvent):void{
@@ -67,24 +64,71 @@ package{
 			}
 		}
 		
-		//2，开场动画结束，进入主菜单
-		private function gotoWelcome(evt:Event):void{
-						
-			this.removeChild(startScene,true);			
-						
-			welcomeScene = new WelcomeScene();
-			welcomeScene.addEventListener(GameEvent.SWITCH_SCENE, gotoAobao);
-			this.addChild(welcomeScene);
+		private function onStage(evt:Event):void{
+			this.removeEventListeners(Event.ADDED_TO_STAGE);
+			
+			//加载画面
+			_loadingView = new STLoadingView();
+			_loadingView.addEventListener(GameEvent.START_GAME, onStartGame);
+			_loadingView.addEventListener(GameEvent.OPEN_ABOUTUS, onAboutUs);
+			this.addChild(_loadingView);
+			
+		}
+		private function onLoadingProgress(evt:GameEvent):void{
+			_loadingView.progress = evt.context as Number;
 		}
 		
-		private function startLoadToolbar(evt:Event):void{
+		private function onStartGame(evt:GameEvent):void{
+			//LOADING START MOVIE SCENE...
+			_loadingView.loading("加载故事情节...");
+			
+			startScene = new StartMovieScene();
+			startScene.addEventListener(GameEvent.LOADING_PROGRESS,onLoadingProgress);
+			startScene.addEventListener(GameEvent.LOADING_COMPLETE,onSceneLoaded);
+			startScene.addEventListener(GameEvent.SWITCH_SCENE, gotoAobao);
+			this.addChild(startScene);	
+		}
 		
+		
+		private function onSceneLoaded(evt:GameEvent):void{
+			this.removeChild(_loadingView);
+			
+			//如果道具栏已经加载，就显示
+			if(_uniToolBar) return;
+			
+			//开始加载道具栏
+			startLoadToolbar();
+		}
+		
+		private function moveToTop(display:DisplayObject):void{
+			this.setChildIndex(display,this.numChildren-1);
+		}
+		
+		//故事加载结束后，就加载道具，这样节省时间
+		private function startLoadToolbar():void{
+			
 			_uniToolBar = new BottomToolBar();
 			this.addChild(_uniToolBar);
 			//FIXME, 先隐藏
 			_uniToolBar.visible = false;
 			_uniToolBar.addEventListener(GameEvent.REEL_TRIGGERD,onWalkThroughOpen);
 		}
+		
+		private function onAboutUs(evt:GameEvent):void{
+			aboutusLayer = new AboutUsLayer();
+			aboutusLayer.addEventListener(Event.REMOVED_FROM_STAGE,aboutOffStage);
+			
+			if(!this.contains(aboutusLayer)){
+				aboutusLayer.x = 330;
+				aboutusLayer.y = 49;
+				_loadingView.hideEye();
+				this.addChild(aboutusLayer);
+			}
+		}
+		
+		private function aboutOffStage(evt:Event):void{
+			_loadingView.showEye();
+		}		
 		
 		private function onWalkThroughOpen(evt:GameEvent):void{
 			if(_raiderLayer && this.contains(_raiderLayer)) return;
@@ -112,13 +156,24 @@ package{
 		}
 		
 		private function gotoAobao(evt:Event):void{
-			this.removeChild(welcomeScene,true);
+			
+			//FIXME, 加黑色背景，解决场景切换闪烁的问题
+			//2012/04/25
+			var blackBg:Quad = new Quad(this.stage.stageWidth,this.stage.stageHeight,0x000000);
+			this.addChild(blackBg);
+			
 			
 			aobaoScene = new AobaoScene();
 			//必须在显示前添加道具栏
 			aobaoScene.toolbar = _uniToolBar;
-			this.addChild(aobaoScene);
 			aobaoScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
+			aobaoScene.addEventListener(GameEvent.LOADING_PROGRESS,onLoadingProgress);
+			aobaoScene.addEventListener(GameEvent.LOADING_COMPLETE,onSceneLoaded);
+			this.addChild(aobaoScene);
+			
+			//显示加载画面。。。
+			this.addChild(_loadingView);
+			_loadingView.loading("加载敖包场景...");
 		}
 		
 		//去第一关大地图

@@ -72,7 +72,12 @@ package com.ybcx.huluntears.map{
 		public function MapLayer(){
 			super();
 			
-			this.addEventListener(Event.ADDED_TO_STAGE, onStage);			
+			this.addEventListener(Event.ADDED_TO_STAGE, onStage);		
+			//FIXME, 暂时不用鼠标拖动操作了，而是感应鼠标位置
+			//2012/04/23
+			//还是拖拽比较方便
+			//2012/04/30
+			this.addEventListener(TouchEvent.TOUCH, onDragMap);
 		}
 		
 		private function onStage(evt:Event):void{
@@ -100,9 +105,7 @@ package com.ybcx.huluntears.map{
 			_itemsContainer = new Sprite();
 			this.addChild(_itemsContainer);
 			
-			//FIXME, 暂时不用鼠标拖动操作了，而是感应鼠标位置
-			//2012/04/23
-			this.addEventListener(TouchEvent.TOUCH, onTouch);
+			
 		}
 		
 		/**
@@ -135,6 +138,9 @@ package com.ybcx.huluntears.map{
 //			this.addChild(ref);
 		}
 		
+		/**
+		 * @deprecated at 2012/04/30
+		 */ 
 		private function onTouch(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(this);
 			if (touch == null) {

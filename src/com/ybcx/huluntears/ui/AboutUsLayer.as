@@ -3,6 +3,7 @@ package com.ybcx.huluntears.ui{
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.text.TextField;
+	import flash.text.TextFormat;
 	
 	import starling.display.Image;
 	import starling.textures.Texture;
@@ -15,8 +16,10 @@ package com.ybcx.huluntears.ui{
 		private var _techSupport:TextField;
 		private var _codeBase:TextField;
 		
-		public function AboutUsLayer(width:Number, heigh:Number){
+		public function AboutUsLayer(width:Number=300, heigh:Number=250){
 			super(width, heigh);
+			//不要背景图了
+			this.useBackground = false;
 		}
 		
 		override protected function createPopupContent():void{
@@ -31,20 +34,23 @@ package com.ybcx.huluntears.ui{
 			_author.autoSize = "left";
 			_author.x = 0;
 			_author.y = startY;
+			_author.textColor = 0xFFFFFF;
 			origTFContainer.addChild(_author);
 			
 			_qq = new TextField();
-			_qq.text = "QQ：xxxxx";
+			_qq.text = "QQ：550370725";
 			_qq.autoSize = "left";
 			_qq.x = 0;
 			_qq.y = startY+rowHeight;
+			_qq.textColor = 0xFFFFFF;
 			origTFContainer.addChild(_qq);
 			
 			_email = new TextField();
-			_email.text = "EMail：xxx@xxx.com";
+			_email.text = "EMail：550370725@qq.com";
 			_email.autoSize = "left";
 			_email.x = 0;
 			_email.y = startY+2*rowHeight;
+			_email.textColor = 0xFFFFFF;
 			origTFContainer.addChild(_email);
 			
 			
@@ -54,6 +60,7 @@ package com.ybcx.huluntears.ui{
 			_techSupport.autoSize = "left";			
 			_techSupport.x = 0;
 			_techSupport.y = startY+4*rowHeight;
+			_techSupport.textColor = 0xFFFFFF;
 			origTFContainer.addChild(_techSupport);
 						
 			_codeBase = new TextField();
@@ -61,6 +68,7 @@ package com.ybcx.huluntears.ui{
 			_codeBase.autoSize = "left";
 			_codeBase.x = 0;
 			_codeBase.y = startY+5*rowHeight;
+			_codeBase.textColor = 0xFFFFFF;
 			origTFContainer.addChild(_codeBase);
 			
 			var textBD:BitmapData = new BitmapData(this.width,this.height,true,0x00000000);

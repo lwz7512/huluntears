@@ -59,7 +59,7 @@ package com.ybcx.huluntears.animation{
 			//更新透明度
 			_target.alpha = _lastAlpha;
 			
-			//恢复可见性，准备交互
+			//当闪烁次数到达后，恢复可见性，准备交互
 			if(!_timer.running){
 				_target.alpha = 1;
 				var end:Event = new Event("complete");
@@ -73,6 +73,14 @@ package com.ybcx.huluntears.animation{
 		 */ 
 		public function start():void{
 			_timer.start();
+			_target.alpha = 0;
+		}
+		
+		/**
+		 * 暂停
+		 */ 
+		public function pauseToInvisible():void{
+			_timer.stop();
 			_target.alpha = 0;
 		}
 		

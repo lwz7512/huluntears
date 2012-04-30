@@ -16,11 +16,21 @@ package com.ybcx.huluntears.events{
 		//子攻略被点击
 		public static const RAIDER_TOUCHED:String = "raiderTouched";
 		
+		//开始游戏，载入剧情介绍场景
+		public static const START_GAME:String = "startGame";
+		//打开关于我们
+		public static const OPEN_ABOUTUS:String = "aboutUs";
+		//场景派发的加载进度事件
+		public static const LOADING_PROGRESS:String = "progress";
+		//场景派发的加载结束事件
+		public static const LOADING_COMPLETE:String = "complete";
 		
 		
 		
-		public var context:Object;
-		
+		/**
+		 * 事件携带的数据
+		 */ 
+		public var context:Object;		
 		
 		public function GameEvent(type:String, context:Object=null){
 			super(type, true);

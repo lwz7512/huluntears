@@ -34,6 +34,9 @@ package com.ybcx.huluntears.ui{
 		//背景层颜色
 		private var _maskColor:uint = 0x01FFFFFF;
 		
+		//是否使用背景图
+		private var _useBackgroundImage:Boolean = true;
+		
 		
 		public function STPopupView(width:Number=100, heigh:Number=100){
 			super();
@@ -43,6 +46,13 @@ package com.ybcx.huluntears.ui{
 			
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
 			this.addEventListener(TouchEvent.TOUCH, onTouch);
+		}
+		
+		/**
+		 * 如果不要背景图，需要设置这个值，默认是都需要的
+		 */ 
+		public function set useBackground(usebg:Boolean):void{
+			_useBackgroundImage = usebg;
 		}
 	
 		/**
@@ -101,6 +111,12 @@ package com.ybcx.huluntears.ui{
 			_maskLayer.y = -this.localToGlobal(new Point(0,0)).y;
 			this.addChild(_maskLayer);
 			
+			if(!_useBackgroundImage) {
+				//直接创建内容
+				createPopupContent();
+				return;
+			}
+			
 			_loadingTF = new TextField(200,20,"加载窗口...","宋体",12,0x666666);
 			_loadingTF.x = _width - 200 >> 1;
 			_loadingTF.y = _height - 20 >> 1;
@@ -109,8 +125,7 @@ package com.ybcx.huluntears.ui{
 		}
 		
 		//点击移除
-		private function onTouch(evt:TouchEvent):void{
-			if(!_bg) return;
+		private function onTouch(evt:TouchEvent):void{			
 			
 			var touch:Touch = evt.getTouch(this);
 			if (touch == null) return;

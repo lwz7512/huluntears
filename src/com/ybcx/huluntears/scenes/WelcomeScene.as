@@ -17,7 +17,11 @@ package com.ybcx.huluntears.scenes{
 	import starling.text.TextField;
 	import starling.textures.Texture;
 	
-	
+	/**
+	 * @deprecated 废弃掉了，而采用STLoadingView
+	 * <br/>
+	 * 2012/04/28
+	 */ 
 	public class WelcomeScene extends BaseScene{
 		
 		private var _queLoader:QueueLoader;		
