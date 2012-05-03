@@ -7,8 +7,6 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.BottomToolBar;
-	
-	
 	import com.ybcx.huluntears.ui.STProgressBar;
 	
 	import flash.display.BitmapData;
@@ -108,6 +106,11 @@ package com.ybcx.huluntears.scenes{
 			
 			
 		}
+		
+		override protected function offStage(evt:Event):void{
+			super.offStage(evt);
+			trace("aobao scene removed!");
+		}
 
 		/**
 		 * 不能添加事件，在Game中添加
@@ -115,7 +118,6 @@ package com.ybcx.huluntears.scenes{
 		public function set toolbar(tb:BottomToolBar):void{
 			_toolBar = tb;			
 		}		
-
 
 		
 		/**
@@ -228,8 +230,7 @@ package com.ybcx.huluntears.scenes{
 				//反复闪烁隐藏攻略图		
 				fadeinHideMap();
 			}
-		}
-		
+		}		
 
 		
 		private function fadeinHideMap():void{
@@ -324,6 +325,13 @@ package com.ybcx.huluntears.scenes{
 		
 		private function onItemError(evt:QueueLoaderEvent):void{
 			trace("item load error..."+evt.title);
+		}
+		
+		/**
+		 * 是否加载图片完成，用来判断是否在显示场景时出加载画面
+		 */ 
+		public function get initialized():Boolean{
+			return _loadCompleted;
 		}
 		
 		override public function dispose():void{

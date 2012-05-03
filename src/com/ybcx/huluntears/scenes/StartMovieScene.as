@@ -6,6 +6,7 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.STProgressBar;
+	import com.ybcx.huluntears.utils.Logger;
 	
 	import flash.display.Bitmap;
 	import flash.events.IOErrorEvent;
@@ -50,6 +51,28 @@ package com.ybcx.huluntears.scenes{
 		public function StartMovieScene(){
 			super();	
 			stories = [];
+		}
+		
+		
+		override protected function onStage(evt:Event):void{
+			super.onStage(evt);		
+			
+			_queLoader = new QueueLoader();
+			_queLoader.addEventListener(QueueLoaderEvent.ITEM_COMPLETE, onItemComplete);
+			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR, onItemError);
+			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_PROGRESS, onQueueProgress);
+			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueueComplete);
+			
+			_queLoader.addItem(storyImgPath_1,null,{title:storyImgPath_1});
+			_queLoader.addItem(storyImgPath_2,null,{title:storyImgPath_2});
+			_queLoader.addItem(storyImgPath_3,null,{title:storyImgPath_3});
+			
+			_queLoader.execute();
+		}
+		
+		override protected function offStage(evt:Event):void{
+			super.offStage(evt);
+			trace("start movie scene removed!");
 		}
 		
 		override protected function  onTouching(touch:Touch):void{
@@ -115,6 +138,8 @@ package com.ybcx.huluntears.scenes{
 			//上边界
 			if(_storyCounter<0){
 				_storyCounter = 0;
+				//FIXME, 恢复初始状态
+				playingFlag = false
 				return;
 			}
 			
@@ -138,26 +163,7 @@ package com.ybcx.huluntears.scenes{
 			goOut.animate("x",distance);
 			Starling.juggler.add(goOut);
 			
-		}
-		
-		override protected function onStage(evt:Event):void{
-			super.onStage(evt);
-			
-			
-			_queLoader = new QueueLoader();
-			_queLoader.addEventListener(QueueLoaderEvent.ITEM_COMPLETE, onItemComplete);
-			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR, onItemError);
-			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_PROGRESS, onQueueProgress);
-			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueueComplete);
-			
-			_queLoader.addItem(storyImgPath_1,null,{title:storyImgPath_1});
-			_queLoader.addItem(storyImgPath_2,null,{title:storyImgPath_2});
-			_queLoader.addItem(storyImgPath_3,null,{title:storyImgPath_3});
-			
-			_queLoader.execute();
-		}
-		
-				
+		}			
 		
 		private function onItemComplete(evt:QueueLoaderEvent):void{
 			var bitmap:Bitmap = evt.content as Bitmap;
@@ -181,10 +187,12 @@ package com.ybcx.huluntears.scenes{
 		private function onQueueProgress(evt:QueueLoaderEvent):void{
 			var progress:GameEvent = new GameEvent(GameEvent.LOADING_PROGRESS,evt.percentage);
 			this.dispatchEvent(progress);
+//			Logger.debug("prog: "+evt.percentage+" at: "+new Date().time);
 		}
 		private function onQueueComplete(evt:QueueLoaderEvent):void{
 			var complete:GameEvent = new GameEvent(GameEvent.LOADING_COMPLETE);
 			this.dispatchEvent(complete);
+//			Logger.debug("que complete! at: "+new Date().time);
 			
 			//show the first story...
 			storyImg_1.alpha = 0;

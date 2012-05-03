@@ -30,17 +30,28 @@ package com.ybcx.huluntears.ui{
 		private var _toolReelUpPath:String = "assets/sceaobao/Toolbar_Reel_1.png";
 		private var _toolReelDownPath:String = "assets/sceaobao/Toolbar_Reel_2.png";
 		//左右箭头
-		private var _toolLeftArrowPath:String = "assets/sceaobao/toolbar_left.png";
-		private var _toolRightArrowPath:String = "assets/sceaobao/toolbar_right.png";
+		private var _toolLeftArrowUpPath:String = "assets/sceaobao/toolbar_left_normal.png";
+		private var _toolLeftArrowDownPath:String = "assets/sceaobao/toolbar_left_down.png";
+		private var _toolRightArrowUpPath:String = "assets/sceaobao/toolbar_right_normal.png";
+		private var _toolRightArrowDownPath:String = "assets/sceaobao/toolbar_right_down.png";
 		
 		private var toolBackground:Image;
-		private var toolReelUp:Image;
-		private var toolReelDown:Image;
-		private var toolLeftArrow:Image;
-		private var toolRightArrow:Image;
 		
+		//卷轴纹理
+		private var toolReelUp:Texture;
+		private var toolReelDown:Texture;		
 		//卷轴按钮
 		private var _reelTool:Button;
+		
+		//按钮纹理
+		private var toolLeftUpTxtr:Texture;
+		private var toolLeftDownTxtr:Texture;
+		private var toolRightUpTxtr:Texture;
+		private var toolRightDownTxtr:Texture;
+		
+		private var toolLeftArrow:Button;
+		private var toolRightArrow:Button;
+		
 		
 		//下载队列
 		private var _queLoader:QueueLoader;					
@@ -48,13 +59,11 @@ package com.ybcx.huluntears.ui{
 		
 		//依靠这个值，来显示攻略图
 		private var _raiderIndex:int = 0;
-		
-		
+				
 		
 		
 		public function BottomToolBar(){
-			super();
-			
+			super();			
 			
 			//下载队列
 			_queLoader = new QueueLoader();
@@ -80,10 +89,15 @@ package com.ybcx.huluntears.ui{
 			if(_loadCompleted) return;
 			
 			_queLoader.addItem(_toolBackgroundPath,null, {title : _toolBackgroundPath});
+			
 			_queLoader.addItem(_toolReelUpPath,null, {title : _toolReelUpPath});
 			_queLoader.addItem(_toolReelDownPath,null, {title : _toolReelDownPath});
-			_queLoader.addItem(_toolLeftArrowPath,null, {title : _toolLeftArrowPath});
-			_queLoader.addItem(_toolRightArrowPath,null, {title : _toolRightArrowPath});
+			
+			_queLoader.addItem(_toolLeftArrowUpPath,null, {title : _toolLeftArrowUpPath});
+			_queLoader.addItem(_toolLeftArrowDownPath,null, {title : _toolLeftArrowDownPath});
+			
+			_queLoader.addItem(_toolRightArrowUpPath,null, {title : _toolRightArrowUpPath});
+			_queLoader.addItem(_toolRightArrowDownPath,null, {title : _toolRightArrowDownPath});
 			
 			//发出请求
 			_queLoader.execute();
@@ -128,28 +142,27 @@ package com.ybcx.huluntears.ui{
 				toolBackground = new Image(Texture.fromBitmap(evt.content));
 				//道具栏
 				toolBackground.x = 0;
-				//这个位置刚合适
-				toolBackground.y = 452;
+				//应用底部
+				toolBackground.y = this.stage.stageHeight-toolBackground.height;
 				this.addChild(toolBackground);
 			}
 			if(evt.title==_toolReelUpPath){
-				toolReelUp = new Image(Texture.fromBitmap(evt.content));				
+				toolReelUp = Texture.fromBitmap(evt.content);				
 			}
 			if(evt.title==_toolReelDownPath){
-				toolReelDown = new Image(Texture.fromBitmap(evt.content));				
+				toolReelDown = Texture.fromBitmap(evt.content);				
 			}
-			if(evt.title==_toolLeftArrowPath){
-				toolLeftArrow = new Image(Texture.fromBitmap(evt.content));
-				//左右箭头
-				toolLeftArrow.x = 10;
-				toolLeftArrow.y = 540;
-				this.addChild(toolLeftArrow);
+			if(evt.title==_toolLeftArrowUpPath){
+				toolLeftUpTxtr = Texture.fromBitmap(evt.content);				
 			}
-			if(evt.title==_toolRightArrowPath){
-				toolRightArrow = new Image(Texture.fromBitmap(evt.content));
-				toolRightArrow.x = AppConfig.VIEWPORT_WIDTH-90;
-				toolRightArrow.y = 540;
-				this.addChild(toolRightArrow);
+			if(evt.title==_toolLeftArrowDownPath){
+				toolLeftDownTxtr = Texture.fromBitmap(evt.content);				
+			}
+			if(evt.title==_toolRightArrowUpPath){
+				toolRightUpTxtr = Texture.fromBitmap(evt.content);				
+			}
+			if(evt.title==_toolRightArrowDownPath){
+				toolRightDownTxtr = Texture.fromBitmap(evt.content);				
 			}
 			
 		}
@@ -163,18 +176,28 @@ package com.ybcx.huluntears.ui{
 			//加载完成标志
 			_loadCompleted = true;							
 			
-			//卷轴
-			var upTexture:Texture = toolReelUp.texture;
-			var downTexture:Texture = toolReelDown.texture;
-			_reelTool = new Button(upTexture,"",downTexture);
-			_reelTool.y = 464;
-			_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
+			//卷轴			
+			_reelTool = new Button(toolReelUp,"",toolReelDown);
+			_reelTool.y = this.stage.stageHeight-60;
+			_reelTool.x = AppConfig.VIEWPORT_WIDTH-40;
 			_reelTool.addEventListener(Event.TRIGGERED,function():void{
 				var reelOpen:GameEvent = new GameEvent(GameEvent.REEL_TRIGGERD,_raiderIndex);
 				dispatchEvent(reelOpen);
 			});
 			this.addChild(_reelTool);
-					
+			
+			//左箭头
+			toolLeftArrow = new Button(toolLeftUpTxtr,"",toolLeftDownTxtr);
+			toolLeftArrow.x = 10;
+			toolLeftArrow.y = 540;
+			this.addChild(toolLeftArrow);
+			
+			//右箭头
+			toolRightArrow = new Button(toolRightUpTxtr,"",toolRightDownTxtr);
+			toolRightArrow.x = AppConfig.VIEWPORT_WIDTH-60;
+			toolRightArrow.y = 540;
+			this.addChild(toolRightArrow);
+			
 		}
 		
 		private function onItemError(evt:QueueLoaderEvent):void{

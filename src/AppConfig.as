@@ -11,7 +11,7 @@ package{
 		public static const INIT_VIEWPORT_Y:Number = 100;
 		
 		public static const VIEWPORT_WIDTH:Number = 760;
-		public static const VIEWPORT_HEIGHT:Number = 480;
+		public static const VIEWPORT_HEIGHT:Number = 500;
 		
 		
 	} //end of class

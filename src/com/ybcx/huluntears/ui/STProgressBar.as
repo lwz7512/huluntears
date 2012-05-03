@@ -67,6 +67,13 @@ package com.ybcx.huluntears.ui{
 		
 		private function redraw():void{
 			var currentWidth:Number = _progress*_width;
+			//如果为0时，清空
+			if(_progress<=0){
+				_bufferBitmap = new BitmapData(width,height,true, 0x33F5F5F5);
+				_texture = Texture.fromBitmapData(_bufferBitmap);
+				_image.texture = _texture;
+				return;
+			}
 			
 			_shape = new Shape();
 			_shape.graphics.beginFill(_color);

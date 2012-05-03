@@ -155,7 +155,7 @@ package com.ybcx.huluntears.ui{
 			if(!this.contains(_loadingSceneTxt)){
 				this.addChild(_loadingSceneTxt);				
 			}
-			
+			showEye();
 		}
 		
 		/**
