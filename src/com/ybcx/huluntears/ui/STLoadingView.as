@@ -45,6 +45,8 @@ package com.ybcx.huluntears.ui{
 		private var _progressbar:STProgressBar;
 		//loading text
 		private var _loadingSceneTxt:TextField;
+		//loading ratio
+		private var _loadedRatio:TextField;
 		
 		//眼睛闪烁动画
 		private var _eyeAnimation:FadeSequence;
@@ -85,6 +87,12 @@ package com.ybcx.huluntears.ui{
 			//放在底部
 			_progressbar.y = this.stage.stageHeight-8;
 			this.addChild(_progressbar);
+			
+			_loadedRatio = new TextField(50,20,"");
+			_loadedRatio.color = 0xFFFFFF;
+			this.addChild(_loadedRatio);
+			_loadedRatio.x = this.stage.stageWidth-30;
+			_loadedRatio.y = this.stage.stageHeight-8;
 			
 			//先创建，不显示，加载时改变文字内容，并显示
 			_loadingSceneTxt = new TextField(200,20,"loading...");
@@ -135,10 +143,20 @@ package com.ybcx.huluntears.ui{
 			_aboutUSBtn.enabled = false;
 		}
 		
+		/**
+		 * 单个文件加载进度
+		 */ 
 		public function set progress(percent:Number):void{
 			if(!_initCompleted) return;
 			
 			_progressbar.progress = percent;
+		}
+		
+		/**
+		 * 多项加载时，以分数形式统计进度：x/x
+		 */
+		public function set loadedRatio(ratio:String):void{
+			_loadedRatio.text = ratio;
 		}
 		
 		/**

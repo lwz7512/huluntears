@@ -2,7 +2,6 @@ package com.ybcx.huluntears.scenes{
 	
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
-	import com.ybcx.huluntears.data.XMLoader;
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.map.MapLayer;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
@@ -10,6 +9,7 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.ui.WalkThroughLayer;
 	import com.ybcx.huluntears.utils.ImageQueLoader;
 	
+	import flash.display.BitmapData;
 	import flash.geom.Point;
 	
 	import starling.animation.Tween;
@@ -30,21 +30,35 @@ package com.ybcx.huluntears.scenes{
 		private var _nearScenaryPath:String = "assets/firstmap/near_scenary.png";
 		private var _maskScenaryPath:String = "assets/firstmap/mask_scenary.png";
 
+		private var _lelechePath:String = "assets/firstmap/leleche.png";		
+		
+		
+		//进入子场景入口热点图
+		private var aobaoHotspot:Image;
+		private var lelecheHotspot:Image;
+		private var riverHotspot:Image;
+		
+		private var aoboLinkX:Number = 430;
+		private var aoboLinkY:Number = 130;
+		private var lelecheLinkX:Number = 400;
+		private var lelecheLinkY:Number = 500;
+		private var riverLinkX:Number = 100;
+		private var riverLinkY:Number = 300;
+		
 
 		//假3D场景用背景图
 		private var remoteScenary:Image;
 		private var nearScenary:Image;
-		private var maskScenary:Image;
-		
+		private var maskScenary:Image;		
+		private var lelecheScenary:Image;
+				
 		private var remoteSceneryStartX:Number = 0;
+		private var _lelecheX:Number = 400;
+		private var _lelecheY:Number = 500;			
 		
+		//拖拽用参数
 		private var _lastTouchX:Number;
-		private var _lastTouchY:Number;
-		private var _lastDiffX:Number;
-		private var _lastDiffY:Number;
-		
-		//TODO, 导航图标
-		private var back:Image;
+		private var _lastTouchY:Number;						
 		
 		//道具栏
 		private var _toolBar:BottomToolBar;
@@ -53,31 +67,26 @@ package com.ybcx.huluntears.scenes{
 		private var _queLoader:ImageQueLoader;
 		private var _loadCompleted:Boolean;
 		
+		//总下载数
+		private var queLength:int;
+		//已下载数
+		private var loadedCount:int;
 		
 		
+		
+		/**
+		 * 第一关主场景，包含4个子场景
+		 */ 
 		public function FirstMapScene(){
-			super();
-			
+			super();			
 		}
 		
 		//判断返回箭头的是否出现
 		override protected function onTouching(touch:Touch):void{
 			//超出触摸范围
-			if(!touch){
-				if(back) back.visible = false;
+			if(!touch){				
 				return;
-			}
-			
-			//在一个矩形区域内
-			if(touch.globalX<100 && touch.globalY<AppConfig.VIEWPORT_HEIGHT){
-				if(back) back.visible = true;
-			}else{
-				if(back) back.visible = false;
-			}			
-			//如果贴近右边缘，就隐藏
-			if(touch.globalX<10){
-				if(back) back.visible = false;
-			}
+			}					
 			
 			dragMap(touch);
 		}
@@ -126,9 +135,13 @@ package com.ybcx.huluntears.scenes{
 				nearScenary.y = tempY;
 				maskScenary.x = tempX;
 				maskScenary.y = tempY;
+				//TODO, 移动敖包热点、勒勒车热点
+				
 				
 				//远景图，相对运动
 				remoteScenary.x = tempRemoteX;
+				//TODO, 移动河流石头热点
+				
 				
 				//记下上一个位置
 				_lastTouchX = touch.globalX;
@@ -139,9 +152,8 @@ package com.ybcx.huluntears.scenes{
 		public function set toolbar(tb:BottomToolBar):void{
 			_toolBar = tb;
 		}
-		
-		//FIXME, 该场景有两类Event，所以要加包名
-		override protected function onStage(evt:starling.events.Event):void{
+				
+		override protected function onStage(evt:Event):void{
 			super.onStage(evt);	
 			
 			if(_loadCompleted) return;
@@ -157,8 +169,12 @@ package com.ybcx.huluntears.scenes{
 			_queLoader.addImageByUrl(_remoteScenaryPath);
 			_queLoader.addImageByUrl(_nearScenaryPath);
 			_queLoader.addImageByUrl(_maskScenaryPath);
-						
-			_queLoader.execute();						
+			_queLoader.addImageByUrl(_lelechePath);
+			
+			queLength = _queLoader.getQueuedItems().length;
+			
+			_queLoader.execute();
+			
 			
 			//显示道具栏
 			_toolBar.showToolbar();
@@ -171,21 +187,13 @@ package com.ybcx.huluntears.scenes{
 		
 		//单个图片加载完成
 		private function onItemLoaded(evt:QueueLoaderEvent):void{
-			trace(evt.title+" loaded...");
-		}
-		
-		private function onBackTouch(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(back);
-			if (touch == null) return;
-			
-			if(touch.phase==TouchPhase.ENDED){
-				var end:GameEvent = new GameEvent(GameEvent.SWITCH_SCENE);
-				this.dispatchEvent(end);				
-			}
-		}
+			//累加
+			loadedCount++;
+		}		
 		
 		private function onQueueProgress(evt:QueueLoaderEvent):void{
-			var progress:GameEvent = new GameEvent(GameEvent.LOADING_PROGRESS,evt.percentage);
+			var totalPercent:Number = (evt.percentage+loadedCount)/queLength;
+			var progress:GameEvent = new GameEvent(GameEvent.LOADING_PROGRESS,totalPercent);
 			this.dispatchEvent(progress);
 		}
 		
@@ -200,6 +208,7 @@ package com.ybcx.huluntears.scenes{
 			var complete:GameEvent = new GameEvent(GameEvent.LOADING_COMPLETE);
 			this.dispatchEvent(complete);
 			
+			//显示各个图层
 			showFirstScenary();
 		}
 		
@@ -220,6 +229,28 @@ package com.ybcx.huluntears.scenes{
 			maskScenary.x = 0;
 			maskScenary.y = 0;
 			this.addChild(maskScenary);
+			
+			lelecheScenary = _queLoader.getImageByUrl(_lelechePath);
+			lelecheScenary.x = _lelecheX;
+			lelecheScenary.y = _lelecheY;
+			this.addChild(lelecheScenary);
+			
+			//TODO, 创建热点并添加交互
+			aobaoHotspot = createHotspot(10);
+			aobaoHotspot.x = aoboLinkX;
+			aobaoHotspot.y = aoboLinkY;
+			this.addChild(aobaoHotspot);
+			
+			lelecheHotspot = createHotspot(10);
+			lelecheHotspot.x = lelecheLinkX;
+			lelecheHotspot.y = lelecheLinkY;
+			this.addChild(lelecheHotspot);
+			
+			riverHotspot = createHotspot(10);
+			riverHotspot.x = riverLinkX;
+			riverHotspot.y = riverLinkY;
+			this.addChild(riverHotspot);
+			
 		}
 		
 		private function onItemError(evt:QueueLoaderEvent):void{
@@ -232,6 +263,13 @@ package com.ybcx.huluntears.scenes{
 		 */ 
 		public function get initialized():Boolean{
 			return _loadCompleted;
+		}
+		
+		//创建透明热点
+		private function createHotspot(size:Number):Image{
+			var bd:BitmapData = new BitmapData(size,size,true,0xFFFF0000);
+//			var bd:BitmapData = new BitmapData(size,size,true,0x01FFFFFF);
+			return new Image(Texture.fromBitmapData(bd));
 		}
 		
 	} //end of class

@@ -20,11 +20,12 @@ package com.ybcx.huluntears.events{
 		public static const START_GAME:String = "startGame";
 		//打开关于我们
 		public static const OPEN_ABOUTUS:String = "aboutUs";
-		//场景派发的加载进度事件
+		//场景派发的单项加载进度事件
 		public static const LOADING_PROGRESS:String = "progress";
 		//场景派发的加载结束事件
-		public static const LOADING_COMPLETE:String = "complete";
-		
+		public static const LOADING_COMPLETE:String = "complete";		
+		//消息提示
+		public static const HINT_USER:String = "hintUser";
 		
 		
 		/**

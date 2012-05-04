@@ -48,6 +48,13 @@ package com.ybcx.huluntears.scenes{
 		private var stories:Array;
 		private var playingFlag:Boolean;
 		
+		//总下载数
+		private var queLength:int;
+		//已下载数
+		private var loadedCount:int;
+		
+		
+		
 		public function StartMovieScene(){
 			super();	
 			stories = [];
@@ -66,6 +73,8 @@ package com.ybcx.huluntears.scenes{
 			_queLoader.addItem(storyImgPath_1,null,{title:storyImgPath_1});
 			_queLoader.addItem(storyImgPath_2,null,{title:storyImgPath_2});
 			_queLoader.addItem(storyImgPath_3,null,{title:storyImgPath_3});
+			
+			queLength = _queLoader.getQueuedItems().length;
 			
 			_queLoader.execute();
 		}
@@ -180,20 +189,20 @@ package com.ybcx.huluntears.scenes{
 				storyImg_3 = new Image(Texture.fromBitmap(evt.content));
 				stories.push(storyImg_3);
 			}
+			//累加
+			loadedCount++;
 		}
 		private function onItemError(evt:QueueLoaderEvent):void{
 			trace("item load error: "+evt.title);
 		}
-		private function onQueueProgress(evt:QueueLoaderEvent):void{
-			var progress:GameEvent = new GameEvent(GameEvent.LOADING_PROGRESS,evt.percentage);
+		private function onQueueProgress(evt:QueueLoaderEvent):void{			
+			var totalPercent:Number = (evt.percentage+loadedCount)/queLength;
+			var progress:GameEvent = new GameEvent(GameEvent.LOADING_PROGRESS,totalPercent);
 			this.dispatchEvent(progress);
-//			Logger.debug("prog: "+evt.percentage+" at: "+new Date().time);
 		}
 		private function onQueueComplete(evt:QueueLoaderEvent):void{
 			var complete:GameEvent = new GameEvent(GameEvent.LOADING_COMPLETE);
 			this.dispatchEvent(complete);
-//			Logger.debug("que complete! at: "+new Date().time);
-			
 			//show the first story...
 			storyImg_1.alpha = 0;
 			this.addChild(storyImg_1);

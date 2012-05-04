@@ -1,26 +1,14 @@
 package{
 	
 	import com.ybcx.huluntears.events.GameEvent;
-	import com.ybcx.huluntears.scenes.AobaoScene;
-	import com.ybcx.huluntears.scenes.FirstMapScene;
-	import com.ybcx.huluntears.scenes.StartMovieScene;
+	import com.ybcx.huluntears.scenes.*;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
-	import com.ybcx.huluntears.ui.AboutUsLayer;
-	import com.ybcx.huluntears.ui.BottomToolBar;
-	import com.ybcx.huluntears.ui.ImagePopup;
-	import com.ybcx.huluntears.ui.STLoadingView;
-	import com.ybcx.huluntears.ui.WalkThroughLayer;
+	import com.ybcx.huluntears.ui.*;
 	
-	import starling.animation.Transitions;
 	import starling.animation.Tween;
 	import starling.core.Starling;
-	import starling.display.DisplayObject;
-	import starling.display.Quad;
-	import starling.display.Sprite;
-	import starling.events.Event;
-	import starling.events.Touch;
-	import starling.events.TouchEvent;
-	import starling.events.TouchPhase;
+	import starling.display.*;
+	import starling.events.*;
 	
 	/**
 	 * 主控各个场景切换的类，监听场景切换事件<br/>
@@ -55,6 +43,7 @@ package{
 		public function Game(){
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
 			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
+			this.addEventListener(GameEvent.HINT_USER, onMessage);
 		}
 		
 		private function onSceneTouch(evt:TouchEvent):void{
@@ -67,7 +56,7 @@ package{
 		}
 		
 		private function onStage(evt:Event):void{
-			this.removeEventListeners(Event.ADDED_TO_STAGE);
+			this.removeEventListeners(Event.ADDED_TO_STAGE);					
 			
 			//FIXME, 加黑色背景，解决场景切换闪烁的问题
 			//2012/04/25
@@ -79,7 +68,7 @@ package{
 			_loadingView.addEventListener(GameEvent.START_GAME, onStartGame);
 			_loadingView.addEventListener(GameEvent.OPEN_ABOUTUS, onAboutUs);
 			this.addChild(_loadingView);
-			
+						
 		}
 
 		
@@ -192,6 +181,20 @@ package{
 		}
 		
 //		--------------------  common operation --------------------------------------------
+		
+		private function onMessage(evt:GameEvent):void{
+			var welcome:AutoDisappearTip = new AutoDisappearTip();
+			welcome.message = evt.context as String;
+			this.addChild(welcome);
+			this.centerView(welcome);
+		}
+		
+		
+		private function centerView(view:DisplayObject):void{
+			view.x = this.stage.stageWidth-view.width >>1;
+			view.y = this.stage.stageHeight-view.height >>1;
+		}
+		
 		
 		private function onLoadingProgress(evt:GameEvent):void{
 			_loadingView.progress = evt.context as Number;

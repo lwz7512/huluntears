@@ -80,6 +80,11 @@ package com.ybcx.huluntears.ui{
 			return _bgBm;
 		}
 		
+		public function updateSize(w:Number,h:Number):void{
+			_width = w;
+			_height = h;
+		}
+		
 		override public function get width():Number{
 			return _width;
 		}
@@ -132,7 +137,7 @@ package com.ybcx.huluntears.ui{
 			
 			if(touch.phase == TouchPhase.ENDED){
 				this.removeChildren(0,-1,true);
-				this.removeFromParent(true);				
+				this.removeFromParent(true);					
 			}
 		}
 		
