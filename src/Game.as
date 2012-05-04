@@ -42,18 +42,10 @@ package{
 		
 		public function Game(){
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
-			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
 			this.addEventListener(GameEvent.HINT_USER, onMessage);
 		}
 		
-		private function onSceneTouch(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(this);
-			if (touch == null) return;
-			
-			if(touch.phase==TouchPhase.ENDED){
-				
-			}
-		}
+		
 		
 		private function onStage(evt:Event):void{
 			this.removeEventListeners(Event.ADDED_TO_STAGE);					
@@ -144,7 +136,7 @@ package{
 			if(!firstMapScene){
 				firstMapScene = new FirstMapScene();
 				firstMapScene.toolbar = _uniToolBar;
-				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE,gotoAobao);	
+				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE,goSubScene);	
 				firstMapScene.addEventListener(GameEvent.LOADING_PROGRESS,onLoadingProgress);
 				firstMapScene.addEventListener(GameEvent.LOADING_COMPLETE,onSceneLoaded);				
 			}
@@ -158,8 +150,24 @@ package{
 								
 		}
 
+		/**
+		 * 根据事件传值，来决定转向哪个子场景
+		 */ 
+		private function goSubScene(evt:GameEvent):void{
+			var subScene:String = evt.context as String;
+			if(subScene==SubSceneNames.FIRST_SUB_AOBAO){
+				gotoAobao();
+			}
+			if(subScene==SubSceneNames.FIRST_SUB_RIVER){
+				
+			}
+			if(subScene==SubSceneNames.FIRST_SUB_LELECHE){
+				
+			}
+		}
 		
-		private function gotoAobao(evt:Event):void{
+		
+		private function gotoAobao():void{
 			clearCurrentScene();			
 			
 			if(!aobaoScene){

@@ -25,13 +25,13 @@ package com.ybcx.huluntears.scenes{
 	public class AobaoScene extends BaseScene{
 		
 		//---------- 图片路径 ----------------------
-		private var _aobaoFocusPath:String = "assets/sceaobao/aobao_focus.png";
+		private var _aobaoFocusPath:String = "assets/sceaobao/aobao_focus.jpg";
 		//进入大地图场景箭头
 		private var _toolReturnPath:String = "assets/sceaobao/tool_return.png";
 		//宝石
 		private var _jewelPath:String = "assets/sceaobao/jewel.png";
 		//隐藏地图
-		private var _hidedMapPath:String = "assets/sceaobao/hidedmap.png";
+		private var _hidedMapPath:String = "assets/sceaobao/hidedmap_s.png";
 
 		
 		
@@ -47,7 +47,10 @@ package com.ybcx.huluntears.scenes{
 		//loading...
 		private var _progressbar:STProgressBar;
 		//下载队列
-		private var _queLoader:QueueLoader;					
+		private var _queLoader:QueueLoader;
+		/**
+		 * 下载完成，也就是场景初始化完成的标志，场景场景再次显示时据此跳过加载过程
+		 */ 
 		private var _loadCompleted:Boolean;
 		
 		//点击宝石遮盖在地图上的黑色遮罩
@@ -84,7 +87,9 @@ package com.ybcx.huluntears.scenes{
 		}
 		
 		override protected function onStage(evt:Event):void{
-			super.onStage(evt);					
+			super.onStage(evt);
+			
+			if(_toolBar) _toolBar.showToolbar();
 			
 			if(_loadCompleted) return;
 			
@@ -103,8 +108,7 @@ package com.ybcx.huluntears.scenes{
 			
 			//发出请求
 			_queLoader.execute();
-			
-			
+						
 		}
 		
 		override protected function offStage(evt:Event):void{
@@ -203,9 +207,9 @@ package com.ybcx.huluntears.scenes{
 				//宝石点击触发地图移动和隐藏攻略
 				jewel.addEventListener(TouchEvent.TOUCH, onJewelTouched);
 				this.addChild(jewel);
-				jewel.x = 388;
-				jewel.y = 98;	
-				_jewelYDiff = 98;
+				jewel.x = 374;
+				jewel.y = 88;	
+				_jewelYDiff = 88;
 			}
 			if(evt.title==_hidedMapPath){
 				hidedMap = new Image(Texture.fromBitmap(evt.content));
@@ -234,9 +238,9 @@ package com.ybcx.huluntears.scenes{
 
 		
 		private function fadeinHideMap():void{
-			hidedMap.x = 570;
-			hidedMap.y = 638;
-			_hideMapYDiff = 638;
+			hidedMap.x = 504;
+			hidedMap.y = 472;
+			_hideMapYDiff = 472;
 			this.addChild(hidedMap);			
 			
 			//不停的闪烁攻略
@@ -251,8 +255,8 @@ package com.ybcx.huluntears.scenes{
 			if(touch.phase == TouchPhase.ENDED){				
 				
 				var move:Tween = new Tween(hidedMap,0.8);
-				move.animate("x", 700);
-				move.animate("y", 450);
+				move.animate("x", AppConfig.VIEWPORT_WIDTH-40);
+				move.animate("y", this.stage.stageHeight-60);
 				move.animate("alpha",0.2);
 				move.animate("scaleX",0.2);
 				move.animate("scaleY",0.2);

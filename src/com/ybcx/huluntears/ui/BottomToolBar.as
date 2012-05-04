@@ -117,7 +117,7 @@ package com.ybcx.huluntears.ui{
 		/**
 		 * 晃动卷轴
 		 */ 
-		public function shakeReel():void{	
+		public function shakeReel():void{				
 			_raiderIndex ++;
 			var rotateRight:Tween = new Tween(_reelTool,0.1);
 			rotateRight.animate("rotation",Math.PI/36);
@@ -126,8 +126,6 @@ package com.ybcx.huluntears.ui{
 				rotateBack.animate("rotation",-Math.PI/36);
 				rotateBack.onComplete = function():void{
 					//恢复初始状态
-					_reelTool.x = AppConfig.VIEWPORT_WIDTH-70;
-					_reelTool.y = 464;
 					_reelTool.rotation = 0;					
 				}
 				Starling.juggler.add(rotateBack);

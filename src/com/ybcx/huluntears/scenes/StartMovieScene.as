@@ -81,7 +81,8 @@ package com.ybcx.huluntears.scenes{
 		
 		override protected function offStage(evt:Event):void{
 			super.offStage(evt);
-			trace("start movie scene removed!");
+			this.dispose();
+			trace("start movie scene destroyed!");
 		}
 		
 		override protected function  onTouching(touch:Touch):void{
@@ -217,6 +218,7 @@ package com.ybcx.huluntears.scenes{
 		override public function dispose():void{
 			super.dispose();
 			
+			this.removeChildren(0,-1,true);
 		
 			_queLoader.dispose();
 			

@@ -38,13 +38,24 @@ package com.ybcx.huluntears.scenes.base{
 		 */ 
 		protected function onSceneTouch(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(this);
-			onTouching(touch);			
+			onTouching(touch);
+			if(!touch) return;
+			
+			if(touch.phase==TouchPhase.ENDED){
+				onTouched(touch);
+			}
 		}
 		
 		/**
-		 * 一次点击场景结束
+		 * 鼠标在场景中的动作
 		 */ 
 		protected function onTouching(touch:Touch):void{
+			
+		}
+		/**
+		 * 点击一次
+		 */
+		protected function onTouched(touch:Touch):void{
 			
 		}
 		
