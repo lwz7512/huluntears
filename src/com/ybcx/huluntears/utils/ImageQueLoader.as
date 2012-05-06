@@ -31,7 +31,6 @@ package com.ybcx.huluntears.utils{
 		 * 将图片添加到查询队列中<br/>
 		 * 
 		 * @param src 图片的地址
-		 * @param img Starling图片对象，在这个方法里初始化
 		 * 
 		 */ 
 		public function addImageByUrl(src:String):void{

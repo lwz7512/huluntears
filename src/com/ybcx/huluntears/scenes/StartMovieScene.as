@@ -36,8 +36,6 @@ package com.ybcx.huluntears.scenes{
 		private var storyImgPath_2:String = "assets/startmovie/story_2.jpg";
 		private var storyImgPath_3:String = "assets/startmovie/story_3.jpg";
 		
-		//用来加载图片
-		private var _queLoader:QueueLoader;
 		
 		private var storyImg_1:Image;
 		private var storyImg_2:Image;
@@ -48,10 +46,7 @@ package com.ybcx.huluntears.scenes{
 		private var stories:Array;
 		private var playingFlag:Boolean;
 		
-		//总下载数
-		private var queLength:int;
-		//已下载数
-		private var loadedCount:int;
+		
 		
 		
 		
@@ -61,31 +56,23 @@ package com.ybcx.huluntears.scenes{
 		}
 		
 		
-		override protected function onStage(evt:Event):void{
-			super.onStage(evt);		
+		override protected function initScene():void{				
 			
-			_queLoader = new QueueLoader();
-			_queLoader.addEventListener(QueueLoaderEvent.ITEM_COMPLETE, onItemComplete);
-			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR, onItemError);
-			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_PROGRESS, onQueueProgress);
-			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueueComplete);
+			addDownloadTask(storyImgPath_1);
+			addDownloadTask(storyImgPath_2);
+			addDownloadTask(storyImgPath_3);
 			
-			_queLoader.addItem(storyImgPath_1,null,{title:storyImgPath_1});
-			_queLoader.addItem(storyImgPath_2,null,{title:storyImgPath_2});
-			_queLoader.addItem(storyImgPath_3,null,{title:storyImgPath_3});
-			
-			queLength = _queLoader.getQueuedItems().length;
-			
-			_queLoader.execute();
+			download();
 		}
 		
-		override protected function offStage(evt:Event):void{
-			super.offStage(evt);
+		override protected function detached():void{			
 			this.dispose();
 			trace("start movie scene destroyed!");
 		}
 		
 		override protected function  onTouching(touch:Touch):void{
+			if(!touch) return;
+			
 			var inLeft:Boolean;
 			if(touch.phase==TouchPhase.ENDED){
 				if(touch.globalX>this.stage.stageWidth/2){
@@ -173,37 +160,16 @@ package com.ybcx.huluntears.scenes{
 			goOut.animate("x",distance);
 			Starling.juggler.add(goOut);
 			
-		}			
+		}
 		
-		private function onItemComplete(evt:QueueLoaderEvent):void{
-			var bitmap:Bitmap = evt.content as Bitmap;
+		override protected function readyToShow():void{			
+			storyImg_1 = getImageByUrl(storyImgPath_1);
+			stories.push(storyImg_1);
+			storyImg_2 = getImageByUrl(storyImgPath_2);
+			stories.push(storyImg_2);
+			storyImg_3 = getImageByUrl(storyImgPath_3);
+			stories.push(storyImg_3);
 			
-			if(evt.title==storyImgPath_1){
-				storyImg_1 = new Image(Texture.fromBitmap(evt.content));
-				stories.push(storyImg_1);
-			}
-			if(evt.title==storyImgPath_2){
-				storyImg_2 = new Image(Texture.fromBitmap(evt.content));
-				stories.push(storyImg_2);
-			}
-			if(evt.title==storyImgPath_3){
-				storyImg_3 = new Image(Texture.fromBitmap(evt.content));
-				stories.push(storyImg_3);
-			}
-			//累加
-			loadedCount++;
-		}
-		private function onItemError(evt:QueueLoaderEvent):void{
-			trace("item load error: "+evt.title);
-		}
-		private function onQueueProgress(evt:QueueLoaderEvent):void{			
-			var totalPercent:Number = (evt.percentage+loadedCount)/queLength;
-			var progress:GameEvent = new GameEvent(GameEvent.LOADING_PROGRESS,totalPercent);
-			this.dispatchEvent(progress);
-		}
-		private function onQueueComplete(evt:QueueLoaderEvent):void{
-			var complete:GameEvent = new GameEvent(GameEvent.LOADING_COMPLETE);
-			this.dispatchEvent(complete);
 			//show the first story...
 			storyImg_1.alpha = 0;
 			this.addChild(storyImg_1);
@@ -219,9 +185,7 @@ package com.ybcx.huluntears.scenes{
 			super.dispose();
 			
 			this.removeChildren(0,-1,true);
-		
-			_queLoader.dispose();
-			
+					
 		}
 		
 	} //end of class

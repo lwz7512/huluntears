@@ -26,7 +26,7 @@ package{
 		private function onStageReady(evt:Event):void{
 			this.removeEventListener(evt.type, arguments.callee);
 			
-			setupStage();			
+			setupStage();	
 			
 			//build engine...
 			mStarling = new Starling(Game, this.stage);

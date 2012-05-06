@@ -5,6 +5,7 @@ package com.ybcx.huluntears.ui{
 	import flash.filters.DropShadowFilter;
 	import flash.text.TextField;
 	
+	import starling.core.Starling;
 	import starling.display.Image;
 	import starling.events.Event;
 	import starling.textures.Texture;
@@ -15,6 +16,8 @@ package com.ybcx.huluntears.ui{
 		private var _message:String = "hi";
 		private var onStageCounter:int;
 		
+		private var durationSeconds:int = 3;
+		
 		public function AutoDisappearTip(width:Number=200, heigh:Number=20){
 			super(width, heigh);
 			//不要背景图了
@@ -24,7 +27,8 @@ package com.ybcx.huluntears.ui{
 		
 		private function onFrame(evt:Event):void{
 			onStageCounter++;
-			if(onStageCounter>48){
+			var frameRate:int = Starling.current.nativeStage.frameRate;
+			if(onStageCounter>durationSeconds*frameRate){
 				this.removeFromParent(true);
 			}
 		}
@@ -54,8 +58,10 @@ package com.ybcx.huluntears.ui{
 			origTFContainer.graphics.drawRoundRect(0,0,toastWidth, toastHeight,6,6);
 			origTFContainer.graphics.endFill();
 			
-			
-			var textBD:BitmapData = new BitmapData(toastWidth,toastHeight,true,0x00000000);
+			origTFContainer.filters = [new DropShadowFilter(4,45,0x666666,0.8)];
+			//FIXME, 留出阴影的大小
+			//2012/05/06
+			var textBD:BitmapData = new BitmapData(toastWidth+4,toastHeight+4,true,0x00000000);
 			textBD.draw(origTFContainer);
 			var textBlock:Image = new Image(Texture.fromBitmapData(textBD));
 			textBlock.x = 0;

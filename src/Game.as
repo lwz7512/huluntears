@@ -33,16 +33,23 @@ package{
 		
 		
 		private var startScene:StartMovieScene;
-		private var aobaoScene:AobaoScene;
 		private var firstMapScene:FirstMapScene;
+		private var aobaoScene:AobaoSubScene;
+		private var riverScene:RiverSubScene;
+		private var lelecheScene:LelecheSubScene;
+		
 		
 		//保存当前的场景，准备场景切换时清除
 		private var currentScene:BaseScene;
 		
 		
+		
 		public function Game(){
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
 			this.addEventListener(GameEvent.HINT_USER, onMessage);
+			
+			this.addEventListener(GameEvent.LOADING_PROGRESS, onLoadingProgress);
+			this.addEventListener(GameEvent.LOADING_COMPLETE, onSceneLoaded);			
 		}
 		
 		
@@ -70,8 +77,6 @@ package{
 			
 			//现在是透明的
 			startScene = new StartMovieScene();
-			startScene.addEventListener(GameEvent.LOADING_PROGRESS,onLoadingProgress);
-			startScene.addEventListener(GameEvent.LOADING_COMPLETE,onSceneLoaded);
 			startScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
 			showScene(startScene);
 		}		
@@ -137,8 +142,6 @@ package{
 				firstMapScene = new FirstMapScene();
 				firstMapScene.toolbar = _uniToolBar;
 				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE,goSubScene);	
-				firstMapScene.addEventListener(GameEvent.LOADING_PROGRESS,onLoadingProgress);
-				firstMapScene.addEventListener(GameEvent.LOADING_COMPLETE,onSceneLoaded);				
 			}
 			showScene(firstMapScene);
 			
@@ -152,17 +155,18 @@ package{
 
 		/**
 		 * 根据事件传值，来决定转向哪个子场景
-		 */ 
+		 */
+		//TODO, ADD MORE SUB SCENE...
 		private function goSubScene(evt:GameEvent):void{
 			var subScene:String = evt.context as String;
 			if(subScene==SubSceneNames.FIRST_SUB_AOBAO){
 				gotoAobao();
 			}
 			if(subScene==SubSceneNames.FIRST_SUB_RIVER){
-				
+				gotoRiver();
 			}
 			if(subScene==SubSceneNames.FIRST_SUB_LELECHE){
-				
+				gotoLeleche();
 			}
 		}
 		
@@ -171,14 +175,12 @@ package{
 			clearCurrentScene();			
 			
 			if(!aobaoScene){
-				aobaoScene = new AobaoScene();
+				aobaoScene = new AobaoSubScene();
 				//必须在显示前添加道具栏
 				aobaoScene.toolbar = _uniToolBar;
 				aobaoScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
-				aobaoScene.addEventListener(GameEvent.LOADING_PROGRESS,onLoadingProgress);
-				aobaoScene.addEventListener(GameEvent.LOADING_COMPLETE,onSceneLoaded);				
 			}
-			this.showScene(aobaoScene);
+			showScene(aobaoScene);
 			
 			if(!aobaoScene.initialized){
 				showLoadingView("加载敖包场景...");		
@@ -188,13 +190,57 @@ package{
 			
 		}
 		
+		//TODO, ...RIVER SCENE...
+		private function gotoRiver():void{
+			clearCurrentScene();
+			
+			if(!riverScene){
+				riverScene = new RiverSubScene();
+				riverScene.toolbar = _uniToolBar;
+				riverScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
+			}
+			showScene(riverScene);
+			
+			if(!riverScene.initialized){
+				showLoadingView("加载河流场景...");		
+			}else{
+				fadeInScene(riverScene);
+			}
+		}
+		
+		private function gotoLeleche():void{
+			clearCurrentScene();
+			
+			if(!lelecheScene){
+				lelecheScene = new LelecheSubScene();
+				lelecheScene.toolbar = _uniToolBar;
+				lelecheScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
+			}
+			showScene(lelecheScene);
+			
+			if(!lelecheScene.initialized){
+				showLoadingView("加载勒勒车场景...");		
+			}else{
+				fadeInScene(lelecheScene);
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 //		--------------------  common operation --------------------------------------------
 		
 		private function onMessage(evt:GameEvent):void{
-			var welcome:AutoDisappearTip = new AutoDisappearTip();
-			welcome.message = evt.context as String;
-			this.addChild(welcome);
-			this.centerView(welcome);
+			var hint:AutoDisappearTip = new AutoDisappearTip();
+			hint.message = evt.context as String;
+			this.addChild(hint);
+			this.centerView(hint);
 		}
 		
 		
@@ -238,7 +284,11 @@ package{
 		 * 显示场景
 		 */ 
 		private function showScene(scene:BaseScene):void{
-			this.addChild(scene);
+			//新场景添加到道具栏的下面，黑色背景的上面
+			this.addChildAt(scene,1);
+			//显示道具栏，因为有可能被隐藏了
+			if(_uniToolBar) _uniToolBar.showToolbar();
+			//保存当前场景，准备下次删除
 			this.currentScene = scene;
 		}
 		
