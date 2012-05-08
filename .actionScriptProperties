@@ -38,6 +38,7 @@
       </libraryPathEntry>
       <libraryPathEntry kind="3" linkType="1" path="D:/Game/starling/PrimaryFeather-Starling-Framework-86fb79d/starling/bin/starling.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="1" linkType="1" path="lib"/>
+      <libraryPathEntry kind="3" linkType="1" path="/QueueLoader/bin/QueueLoader.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

@@ -5,8 +5,12 @@ package com.ybcx.huluntears.scenes.base{
 	import com.ybcx.huluntears.ui.BottomToolBar;
 	import com.ybcx.huluntears.utils.ImageQueLoader;
 	
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
+	import starling.display.DisplayObject;
 	import starling.display.Image;
 	import starling.display.Sprite;
 	import starling.events.Event;
@@ -40,7 +44,8 @@ package com.ybcx.huluntears.scenes.base{
 		//已下载数
 		private var loadedCount:int;
 		
-		
+		//碰撞监测对象
+		protected var hitTestDO:DisplayObject;
 		
 		
 		//------------- begin to build scene ------------------
@@ -53,6 +58,26 @@ package com.ybcx.huluntears.scenes.base{
 			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
 		}
 		
+		/**
+		 * 子类要重载，实现碰撞检测后的动作
+		 */ 
+		public function putItemHitted(img:Image, where:Point):void{
+			
+		}
+		
+		/**
+		 * 每个场景，当前只有一个待碰撞检查对象，用于道具与之交互
+		 */ 
+		public function get hitTestItem():DisplayObject{
+			return hitTestDO;
+		}
+		
+		/**
+		 * 碰撞检查矩形
+		 */
+		public function get hitTestRect():Rectangle{
+			return null;
+		}
 		
 		/**
 		 * 是否加载图片完成，用来判断是否在显示场景时出加载画面
@@ -122,6 +147,21 @@ package com.ybcx.huluntears.scenes.base{
 		protected function getImageByUrl(src:String):Image{
 			return _queLoader.getImageByUrl(src);
 		}
+		
+		/**
+		 * 获得下载的位图对象
+		 */ 
+		protected function getBitmapByUrl(src:String):Bitmap{
+			return _queLoader.getBitmapByUrl(src);
+		}
+		
+		/**
+		 * 获得下载的材质
+		 */ 
+		protected function getTextrByUrl(src:String):Texture{
+			return _queLoader.getTextrByUrl(src);
+		}
+		
 		
 		/**
 		 * 开始下载图片

@@ -3,11 +3,13 @@ package com.ybcx.huluntears.scenes{
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
 	import com.ybcx.huluntears.events.GameEvent;
+	import com.ybcx.huluntears.items.BaseItem;
+	import com.ybcx.huluntears.items.PickupImage;
 	import com.ybcx.huluntears.map.MapLayer;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.BottomToolBar;
+	import com.ybcx.huluntears.ui.ImageGroup;
 	import com.ybcx.huluntears.ui.WalkThroughLayer;
-	
 	
 	import flash.display.BitmapData;
 	import flash.geom.Point;
@@ -16,6 +18,7 @@ package com.ybcx.huluntears.scenes{
 	import starling.animation.Tween;
 	import starling.core.Starling;
 	import starling.display.Button;
+	import starling.display.DisplayObject;
 	import starling.display.Image;
 	import starling.display.Sprite;
 	import starling.events.Event;
@@ -31,14 +34,26 @@ package com.ybcx.huluntears.scenes{
 	 * 2012/05/04
 	 */ 
 	public class FirstMapScene extends BaseScene{
-				
+		
+		
+		[Embed(source="assets/firstmap/jewel_s.png")]
+		private var JewelSmall:Class;
+		
 		private var _remoteScenaryPath:String = "assets/firstmap/remote_scenary.jpg";
 		private var _nearScenaryPath:String = "assets/firstmap/near_scenary.png";
 		private var _maskScenaryPath:String = "assets/firstmap/mask_scenary.png";
 		private var _lelechePath:String = "assets/firstmap/leleche.png";
 		
-		[Embed(source="assets/firstmap/jewel_s.png")]
-		private var JewelSmall:Class;
+		//TODO, 测试道具
+		private var zhuziLeftPath:String = "assets/firstitems/1_Toolbar_zhuzi_1.png";
+		private var zhuzi_pickup:PickupImage;
+		private var zhuziX:Number = 100;
+		private var zhuziY:Number = 300;
+		
+		
+		private var _mgbBase:ImageGroup;
+		private var _mgbX:Number = 200;
+		private var _mgbY:Number = 400;
 		
 
 		private var frontScenaryLayer:Sprite;
@@ -84,7 +99,21 @@ package com.ybcx.huluntears.scenes{
 			super();		
 		}
 		
-
+		/**
+		 * 碰撞检查成功了，可以放了在场景中了
+		 */ 
+		//TODO, 后面还要检查顺序
+		override public function putItemHitted(img:Image,where:Point):void{
+			frontScenaryLayer.addChild(img);
+			//FIXME, 前景层移动的偏差要考虑			
+			img.x = where.x-frontScenaryLayer.x;
+			img.y = where.y-frontScenaryLayer.y;
+			
+		}
+		
+		override public function get hitTestRect():Rectangle{			
+			return _mgbBase.hitTestRect;
+		}
 				
 		override protected function initScene():void{			
 												
@@ -92,6 +121,8 @@ package com.ybcx.huluntears.scenes{
 			addDownloadTask(_nearScenaryPath);
 			addDownloadTask(_maskScenaryPath);
 			addDownloadTask(_lelechePath);
+			
+			addDownloadTask(zhuziLeftPath);
 			
 			download();
 		}
@@ -107,8 +138,7 @@ package com.ybcx.huluntears.scenes{
 			dragMap(touch);
 		}
 		override protected function onTouched(touch:Touch):void{
-			drillDown(touch);
-			//todo more...
+			drillDown(touch);			
 		}
 		/**
 		 * 根据点击位置，来判断是否该进子场景
@@ -203,17 +233,14 @@ package com.ybcx.huluntears.scenes{
 			}
 		}
 
-		
-
-		
-		//清理队列
-		override protected function readyToShow():void{
+					
+		override protected function readyToShow():void{			
 			
 			//显示各个图层
 			showFirstScenary();
 			
 			//显示游戏提示
-			showGameHint("首先找到第一张攻略图");
+			showGameHint("首先找到第一张任务图");
 		}
 		
 		private function showFirstScenary():void{
@@ -265,11 +292,28 @@ package com.ybcx.huluntears.scenes{
 			lelecheHotspot.y = lelecheLinkY;
 			frontScenaryLayer.addChild(lelecheHotspot);
 			
+			//TODO, 添加碰撞检测，是否可以放置道具上去
+			_mgbBase = new ImageGroup();
+			_mgbBase.x = _mgbX;
+			_mgbBase.y = _mgbY;
+			frontScenaryLayer.addChild(_mgbBase);
+			
+			//设置碰撞检测对象
+			this.hitTestDO = _mgbBase;
+			
+			//添加道具
+			zhuzi_pickup = new PickupImage(getTextrByUrl(zhuziLeftPath));
+			zhuzi_pickup.x = zhuziX;
+			zhuzi_pickup.y = zhuziY;
+			zhuzi_pickup.name = "zhuzi_left";
+			zhuzi_pickup.bitmap = this.getBitmapByUrl(zhuziLeftPath);
+			
+			frontScenaryLayer.addChild(zhuzi_pickup);
 			
 		}
 		
 
-				
+		//Game to listen...
 		private function showGameHint(msg:String):void{
 			var hint:GameEvent = new GameEvent(GameEvent.HINT_USER,msg);
 			this.dispatchEvent(hint);

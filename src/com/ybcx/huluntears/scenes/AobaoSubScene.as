@@ -166,34 +166,6 @@ package com.ybcx.huluntears.scenes{
 			//不停的闪烁攻略
 //			_fadeInOut = new FadeSequence(hidedMap,0.2);
 //			_fadeInOut.start();
-		}
-		
-		private function onHideMapTouched(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(hidedMap);
-			if (touch == null) return;
-			
-			if(touch.phase == TouchPhase.ENDED){				
-				
-				var move:Tween = new Tween(hidedMap,0.8);
-				move.animate("x", AppConfig.VIEWPORT_WIDTH-40);
-				move.animate("y", this.stage.stageHeight-60);
-				move.animate("alpha",0.2);
-				move.animate("scaleX",0.2);
-				move.animate("scaleY",0.2);
-				move.onComplete = function():void{
-					shakeReel();
-				};
-				Starling.juggler.add(move);
-				//停止闪烁
-//				_fadeInOut.dispose();
-				//移除黑色遮罩
-				this.removeChild(_mask);
-			}
-		}
-		//晃动卷轴
-		private function shakeReel():void{
-			toolbar.shakeReel();
-			hidedMap.visible = false;
 		}		
 		
 			
@@ -230,7 +202,33 @@ package com.ybcx.huluntears.scenes{
 			goMap.addEventListener(TouchEvent.TOUCH, onMapTouched);
 		}
 		
-
+		private function onHideMapTouched(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(hidedMap);
+			if (touch == null) return;
+			
+			if(touch.phase == TouchPhase.ENDED){				
+				
+				var move:Tween = new Tween(hidedMap,0.8);
+				move.animate("x", AppConfig.VIEWPORT_WIDTH-40);
+				move.animate("y", this.stage.stageHeight-60);
+				move.animate("alpha",0.2);
+				move.animate("scaleX",0.2);
+				move.animate("scaleY",0.2);
+				move.onComplete = function():void{
+					shakeReel();
+				};
+				Starling.juggler.add(move);
+				//停止闪烁
+				//				_fadeInOut.dispose();
+				//移除黑色遮罩
+				this.removeChild(_mask);
+			}
+		}
+		//晃动卷轴
+		private function shakeReel():void{
+			toolbar.shakeReel();
+			hidedMap.visible = false;
+		}	
 		
 		private function onMapTouched(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(goMap);

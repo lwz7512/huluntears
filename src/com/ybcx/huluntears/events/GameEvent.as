@@ -26,6 +26,14 @@ package com.ybcx.huluntears.events{
 		public static const LOADING_COMPLETE:String = "complete";		
 		//消息提示
 		public static const HINT_USER:String = "hintUser";
+		//道具内的道具被选择，积极去场景中使用
+		public static const ITEM_SELECTED:String = "itemSelected";
+		//跟随鼠标的道具在道具栏点击，销毁道具
+		public static const ITEM_DESTROYED:String = "itemDestroyed";
+		//在道具栏显示新找到的道具
+		public static const ITEM_FOUND:String = "itemFound";
+		//道具与场景物体碰撞成功
+		public static const HITTEST_SUCCESS:String = "itemHitted";
 		
 		
 		/**

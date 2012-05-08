@@ -1,5 +1,7 @@
 package com.ybcx.huluntears.ui{
 	
+	import com.ybcx.huluntears.animation.FadeIn;
+	
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.filters.DropShadowFilter;
@@ -66,6 +68,8 @@ package com.ybcx.huluntears.ui{
 			var textBlock:Image = new Image(Texture.fromBitmapData(textBD));
 			textBlock.x = 0;
 			this.addChild(textBlock);
+			//fade in
+			new FadeIn(textBlock);
 		}
 		
 	} //end of class

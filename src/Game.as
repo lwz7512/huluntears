@@ -1,9 +1,19 @@
 package{
 	
+	import com.ybcx.huluntears.animation.FadeIn;
+	import com.ybcx.huluntears.animation.MotionTo;
+	import com.ybcx.huluntears.animation.ZoomOut;
+	import com.ybcx.huluntears.data.ItemConfig;
+	import com.ybcx.huluntears.data.ItemManager;
 	import com.ybcx.huluntears.events.GameEvent;
+	import com.ybcx.huluntears.items.BaseItem;
+	import com.ybcx.huluntears.items.PickupImage;
 	import com.ybcx.huluntears.scenes.*;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.*;
+	
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import starling.animation.Tween;
 	import starling.core.Starling;
@@ -18,7 +28,18 @@ package{
 	 * 2012/04/06
 	 */ 
 	public class Game extends Sprite{
-				
+		
+		//道具配置
+		private var itemConfig:ItemConfig;
+		
+		//道具管理器
+		private var itemManager:ItemManager;
+		
+		/**
+		 * 道具临时容器，供道具跟随鼠标移动，以及道具飞入道具栏使用
+		 */ 
+		private var _itemMoveLayer:Sprite;
+		
 		//加载画面
 		private var _loadingView:STLoadingView;
 		
@@ -46,30 +67,57 @@ package{
 		
 		public function Game(){
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
+			
 			this.addEventListener(GameEvent.HINT_USER, onMessage);
 			
 			this.addEventListener(GameEvent.LOADING_PROGRESS, onLoadingProgress);
-			this.addEventListener(GameEvent.LOADING_COMPLETE, onSceneLoaded);			
+			this.addEventListener(GameEvent.LOADING_COMPLETE, onSceneLoaded);
+			
+			this.addEventListener(GameEvent.ITEM_SELECTED, onItemSelected);
+			this.addEventListener(GameEvent.ITEM_DESTROYED, onItemDestroy);
+			this.addEventListener(GameEvent.ITEM_FOUND, onItemFound);
+			this.addEventListener(GameEvent.HITTEST_SUCCESS, onItemHitted);
 		}
 		
 		
-		
 		private function onStage(evt:Event):void{
-			this.removeEventListeners(Event.ADDED_TO_STAGE);					
+			this.removeEventListeners(Event.ADDED_TO_STAGE);				
 			
 			//FIXME, 加黑色背景，解决场景切换闪烁的问题
 			//2012/04/25
 			var blackBg:Quad = new Quad(this.stage.stageWidth,this.stage.stageHeight,0x000000);
-			this.addChild(blackBg);
+			this.addChild(blackBg);					
+						
+			//加载道具栏
+			initLoadToolbar();
+			
+			//道具移动层
+			_itemMoveLayer = new Sprite();
+			this.addChild(_itemMoveLayer);
 			
 			//显示欢迎画面
 			_loadingView = new STLoadingView();
 			_loadingView.addEventListener(GameEvent.START_GAME, onStartGame);
 			_loadingView.addEventListener(GameEvent.OPEN_ABOUTUS, onAboutUs);
 			this.addChild(_loadingView);
-						
+			
 		}
 
+		//故事加载结束后，就加载道具，这样节省时间
+		private function initLoadToolbar():void{
+			itemConfig = new ItemConfig();
+			//道具管理器
+			itemManager = new ItemManager();
+			//先放第一关的道具
+			itemManager.cacheItemVOs(itemConfig.getFirstScenaryItems());
+			
+			_uniToolBar = new BottomToolBar(itemManager);
+			//FIXME, 先隐藏
+			_uniToolBar.visible = false;
+			//道具栏一直在舞台上，只是有时隐藏了
+			this.addChild(_uniToolBar);
+			_uniToolBar.addEventListener(GameEvent.REEL_TRIGGERD,onWalkThroughOpen);
+		}
 		
 		private function onStartGame(evt:GameEvent):void{
 			//这时欢迎画面已经在舞台上了，切换为加载状态
@@ -81,17 +129,6 @@ package{
 			showScene(startScene);
 		}		
 
-		
-		//故事加载结束后，就加载道具，这样节省时间
-		private function startLoadToolbar():void{
-			
-			_uniToolBar = new BottomToolBar();
-			//道具栏一直在舞台上，只是有时隐藏了
-			this.addChild(_uniToolBar);
-			//FIXME, 先隐藏
-			_uniToolBar.visible = false;
-			_uniToolBar.addEventListener(GameEvent.REEL_TRIGGERD,onWalkThroughOpen);
-		}
 		
 		private function onAboutUs(evt:GameEvent):void{
 			aboutusLayer = new AboutUsLayer();
@@ -234,19 +271,76 @@ package{
 		
 		
 		
-//		--------------------  common operation --------------------------------------------
+
+//		---------------  道具操作 -------------------------------------
+		private function onItemHitted(evt:GameEvent):void{
+			var item:BaseItem = evt.context as BaseItem;			
+			currentScene.putItemHitted(item.img, new Point(item.x,item.y));
+		}		
+		
+		private function onItemSelected(evt:GameEvent):void{
+			var item:BaseItem = evt.context as BaseItem;
+			var cloned:BaseItem = item.clone();
+			cloned.globalHitTestRect = currentScene.hitTestRect;
+			_itemMoveLayer.addChild(cloned);
+		}		
+		private function onItemDestroy(evt:GameEvent):void{			
+			_itemMoveLayer.removeChildren(0,-1,true);
+		}
+		
+		private function onItemFound(evt:GameEvent):void{
+			var pickup:PickupImage = evt.context as PickupImage;
+			//移动过后的位置
+			var movePickupPos:Point = pickup.localToGlobal(new Point(0,0));
+			//从原来所在的容器中移除
+			pickup.removeFromParent();
+			
+			
+			var itemPosInToolbar:Point = _uniToolBar.getItemBGPosByName(pickup.name);
+			if(!itemPosInToolbar){
+				trace("not found item for: "+pickup.name);
+				return;
+			}
+			//设置目标位置
+			pickup.disppearedPos(itemPosInToolbar.x,itemPosInToolbar.y);
+			//新的起始位置
+			pickup.x = movePickupPos.x;
+			pickup.y = movePickupPos.y;
+			
+			//道具临时容器置顶
+			moveToTop(_itemMoveLayer);
+			
+			//显示临时道具到容器中，准备飞行
+			_itemMoveLayer.addChild(pickup);
+			
+			pickup.flying(function():void{
+				_uniToolBar.showItemFound(pickup);
+				_itemMoveLayer.removeChildren(0,-1,true);
+			});
+			
+		}
+		
+		private function getCurrentSceneHitTestPt():Point{
+			var rect:Rectangle = currentScene.hitTestRect;
+			
+			return new Point(rect.x+rect.width/2, rect.y+rect.height/2);
+		}
+		
+//		--------------------  common operation --------------------------------------------				
 		
 		private function onMessage(evt:GameEvent):void{
 			var hint:AutoDisappearTip = new AutoDisappearTip();
 			hint.message = evt.context as String;
 			this.addChild(hint);
-			this.centerView(hint);
-		}
+			this.centerMessage(hint);
+		}			
 		
 		
-		private function centerView(view:DisplayObject):void{
-			view.x = this.stage.stageWidth-view.width >>1;
-			view.y = this.stage.stageHeight-view.height >>1;
+		private function centerMessage(view:DisplayObject):void{
+			var endX:Number = this.stage.stageWidth-view.width >>1;
+			var endY:Number = this.stage.stageHeight-view.height >>1;
+			new MotionTo(view,endX,endY,null,1,true);
+			new ZoomOut(view);
 		}
 		
 		
@@ -260,12 +354,14 @@ package{
 		private function onSceneLoaded(evt:GameEvent):void{
 			this.removeChild(_loadingView);
 			
-			//如果道具栏已经加载，就不重复加载
-			if(_uniToolBar) return;
-			
-			//开始加载道具栏
-			startLoadToolbar();
-		}
+			//除了故事场景外，其他场景都有道具栏
+			if(currentScene!=startScene) {
+				_uniToolBar.showToolbar();
+			}else{
+				_uniToolBar.visible = false;
+			}
+						
+		}			
 		
 		private function moveToTop(display:DisplayObject):void{
 			this.setChildIndex(display,this.numChildren-1);
@@ -286,8 +382,7 @@ package{
 		private function showScene(scene:BaseScene):void{
 			//新场景添加到道具栏的下面，黑色背景的上面
 			this.addChildAt(scene,1);
-			//显示道具栏，因为有可能被隐藏了
-			if(_uniToolBar) _uniToolBar.showToolbar();
+			
 			//保存当前场景，准备下次删除
 			this.currentScene = scene;
 		}

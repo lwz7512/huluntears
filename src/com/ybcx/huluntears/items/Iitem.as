@@ -7,8 +7,6 @@ package com.ybcx.huluntears.items{
 	 */ 
 	public interface Iitem{
 		
-		
-		
-		
+	
 	}
 }

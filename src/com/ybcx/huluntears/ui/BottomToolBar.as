@@ -2,12 +2,22 @@ package com.ybcx.huluntears.ui{
 	
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
+	import com.ybcx.huluntears.data.ItemManager;
+	import com.ybcx.huluntears.data.ItemVO;
 	import com.ybcx.huluntears.events.GameEvent;
+	import com.ybcx.huluntears.items.BaseItem;
+	import com.ybcx.huluntears.items.ItemPlaceHolder;
+	import com.ybcx.huluntears.items.PickupImage;
+	import com.ybcx.huluntears.utils.ImageQueLoader;
+	
+	import flash.display.Bitmap;
+	import flash.geom.Point;
 	
 	import starling.animation.Juggler;
 	import starling.animation.Tween;
 	import starling.core.Starling;
 	import starling.display.Button;
+	import starling.display.DisplayObject;
 	import starling.display.Image;
 	import starling.display.Sprite;
 	import starling.events.Event;
@@ -54,20 +64,25 @@ package com.ybcx.huluntears.ui{
 		
 		
 		//下载队列
-		private var _queLoader:QueueLoader;					
+		private var _queLoader:ImageQueLoader;				
 		private var _loadCompleted:Boolean;
 		
 		//依靠这个值，来显示攻略图
 		private var _raiderIndex:int = 0;
 				
+		//道具显示层
+		private var _itemsLayer:Sprite;
+		//道具数据管理器
+		private var _manager:ItemManager;
 		
 		
-		public function BottomToolBar(){
+		public function BottomToolBar(manager:ItemManager){
 			super();			
 			
+			_manager = manager;
+			
 			//下载队列
-			_queLoader = new QueueLoader();
-			_queLoader.addEventListener(QueueLoaderEvent.ITEM_COMPLETE, onItemLoaded);
+			_queLoader = new ImageQueLoader();
 			_queLoader.addEventListener(QueueLoaderEvent.ITEM_ERROR,onItemError);
 			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);
 			
@@ -76,42 +91,51 @@ package com.ybcx.huluntears.ui{
 		}
 		
 		/**
-		 * 处理返回按钮
+		 * 查找道具印记位置
 		 */ 
-		private function onSceneTouch(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(this);
-			if (touch == null) return;
-			
-		}
-		
-		private  function onStage(evt:Event):void{
-			
-			if(_loadCompleted) return;
-			
-			_queLoader.addItem(_toolBackgroundPath,null, {title : _toolBackgroundPath});
-			
-			_queLoader.addItem(_toolReelUpPath,null, {title : _toolReelUpPath});
-			_queLoader.addItem(_toolReelDownPath,null, {title : _toolReelDownPath});
-			
-			_queLoader.addItem(_toolLeftArrowUpPath,null, {title : _toolLeftArrowUpPath});
-			_queLoader.addItem(_toolLeftArrowDownPath,null, {title : _toolLeftArrowDownPath});
-			
-			_queLoader.addItem(_toolRightArrowUpPath,null, {title : _toolRightArrowUpPath});
-			_queLoader.addItem(_toolRightArrowDownPath,null, {title : _toolRightArrowDownPath});
-			
-			//发出请求
-			_queLoader.execute();
-						
+		public function getItemBGPosByName(itemName:String):Point{
+			var result:DisplayObject = _itemsLayer.getChildByName(itemName);
+			if(result) return result.localToGlobal(new Point(0,0));
+			return null;
 		}
 		
 		/**
-		 * 由各场景调用，需要的时候让道具栏显示
+		 * 由Game调用，需要的时候让道具栏显示
 		 */ 
 		public function showToolbar():void{
 			if(!this.parent) return;
 			//move top
 			this.parent.setChildIndex(this,this.parent.numChildren-1);
 			this.visible = true;
+		}		
+		
+		/**
+		 * 载入新找到的道具图片，放到相应的占位符上，形成道具<br/>
+		 * 场景中都是普通的可拾起的图片，点击后可自动飞入道具栏
+		 */ 
+		public function showItemFound(img:PickupImage):void{			
+			//创建道具对象
+			var item:BaseItem = new BaseItem();
+			item.content = img.bitmap;
+			item.name = img.name;
+			//放置在道具栏中
+			putItemOnItsbg(item);
+						
+		}
+		
+		private function putItemOnItsbg(item:BaseItem):void{
+			var target:DisplayObject = _itemsLayer.getChildByName(item.name);
+			if(!target){
+				trace("item not found while put in toolbar: "+item.name);
+				return;
+			}
+			item.x = target.x;
+			item.y = target.y;
+			
+			//先删除道具占位符
+			_itemsLayer.removeChild(target);
+			//显示新道具
+			_itemsLayer.addChild(item);
 		}
 		
 		/**
@@ -132,38 +156,62 @@ package com.ybcx.huluntears.ui{
 			};
 			Starling.juggler.add(rotateRight);
 		}
+
 		
-		//单个图片加载完成
-		private function onItemLoaded(evt:QueueLoaderEvent):void{
+		/**
+		 * 处理返回按钮
+		 */ 
+		private function onSceneTouch(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(this);
+			if (touch == null) return;
 			
-			if(evt.title==_toolBackgroundPath){
-				toolBackground = new Image(Texture.fromBitmap(evt.content));
-				//道具栏
-				toolBackground.x = 0;
-				//应用底部
-				toolBackground.y = this.stage.stageHeight-toolBackground.height;
-				this.addChild(toolBackground);
-			}
-			if(evt.title==_toolReelUpPath){
-				toolReelUp = Texture.fromBitmap(evt.content);				
-			}
-			if(evt.title==_toolReelDownPath){
-				toolReelDown = Texture.fromBitmap(evt.content);				
-			}
-			if(evt.title==_toolLeftArrowUpPath){
-				toolLeftUpTxtr = Texture.fromBitmap(evt.content);				
-			}
-			if(evt.title==_toolLeftArrowDownPath){
-				toolLeftDownTxtr = Texture.fromBitmap(evt.content);				
-			}
-			if(evt.title==_toolRightArrowUpPath){
-				toolRightUpTxtr = Texture.fromBitmap(evt.content);				
-			}
-			if(evt.title==_toolRightArrowDownPath){
-				toolRightDownTxtr = Texture.fromBitmap(evt.content);				
+		}
+		
+		private  function onStage(evt:Event):void{
+			this.removeEventListener(evt.type, arguments.callee);			
+			if(_loadCompleted) return;
+			
+			//道具显示容器
+			_itemsLayer = new Sprite();
+			_itemsLayer.x = 20;
+			_itemsLayer.y = this.stage.stageHeight-50;
+			this.addChild(_itemsLayer);
+			
+			//加载道具栏背景图
+			_queLoader.addImageByUrl(_toolBackgroundPath);
+						
+			_queLoader.addImageByUrl(_toolReelUpPath);
+			_queLoader.addImageByUrl(_toolReelDownPath);
+						
+			_queLoader.addImageByUrl(_toolLeftArrowUpPath);
+			_queLoader.addImageByUrl(_toolLeftArrowDownPath);
+
+			_queLoader.addImageByUrl(_toolRightArrowUpPath);
+			_queLoader.addImageByUrl(_toolRightArrowDownPath);
+			
+			//加载当第一关道具
+			loadItemBGs();
+			
+			//发出请求
+			_queLoader.execute();
+			
+		}
+		
+		/**
+		 * 载入道具印记图片
+		 */
+		//FIXME, 将来可以载入其他关的道具
+		private function loadItemBGs():void{
+			_itemsLayer.removeChildren(0,1);
+			
+			var items:Array = _manager.getAllItems();			
+			for(var i:int=0; i<items.length; i++){
+				var item:ItemVO = items[i] as ItemVO;
+				_queLoader.addImageByUrl(item.bgImagePath);
 			}
 			
 		}
+				
 		
 		//加载队列完成
 		private function onQueComplete(evt:QueueLoaderEvent):void{
@@ -173,6 +221,52 @@ package com.ybcx.huluntears.ui{
 			}
 			//加载完成标志
 			_loadCompleted = true;							
+			
+			showToolbarAssets();
+			
+			//显示道具印记
+			showItemBgs();
+			
+			//将道具层置顶
+			moveTop(_itemsLayer);
+		}
+		
+		private function showItemBgs():void{
+			var items:Array = _manager.getAllItems();	
+			var itemHGap:Number = 20;
+			var itemStartX:Number = 20;
+			for(var i:int=0; i<items.length; i++){
+				var item:ItemVO = items[i] as ItemVO;
+				
+				var imgBG:ItemPlaceHolder = new ItemPlaceHolder(_queLoader.getTextrByUrl(item.bgImagePath));
+				imgBG.x = itemStartX;
+				imgBG.name = item.itemName;
+				_itemsLayer.addChild(imgBG);
+				
+				itemStartX += imgBG.width+itemHGap;
+			}
+			
+		}
+		
+		private function moveTop(view:DisplayObject):void{
+			this.setChildIndex(view, this.numChildren-1);
+		}
+		
+		private function showToolbarAssets():void{
+			toolReelUp = _queLoader.getTextrByUrl(_toolReelUpPath);
+			toolReelDown = _queLoader.getTextrByUrl(_toolReelDownPath);
+			toolLeftUpTxtr = _queLoader.getTextrByUrl(_toolLeftArrowUpPath);
+			toolLeftDownTxtr = _queLoader.getTextrByUrl(_toolLeftArrowDownPath);
+			toolRightUpTxtr = _queLoader.getTextrByUrl(_toolRightArrowUpPath);
+			toolRightDownTxtr = _queLoader.getTextrByUrl(_toolRightArrowDownPath);
+			
+			//背景图
+			toolBackground = _queLoader.getImageByUrl(_toolBackgroundPath);
+			//道具栏
+			toolBackground.x = 0;
+			//应用底部
+			toolBackground.y = this.stage.stageHeight-toolBackground.height;
+			this.addChild(toolBackground);						
 			
 			//卷轴			
 			_reelTool = new Button(toolReelUp,"",toolReelDown);

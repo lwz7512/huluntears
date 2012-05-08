@@ -38,19 +38,29 @@ package com.ybcx.huluntears.utils{
 		}
 		
 		public function getImageByUrl(src:String):Image{
-			if(_imagePool[src]) return _imagePool[src] as Image;
+						
+			if(_imagePool[src]){
+				var img:Image = new Image(Texture.fromBitmap(_imagePool[src] as Bitmap));
+				return img;
+			}
+			
+			return null;
+		}
+		
+		public function getBitmapByUrl(src:String):Bitmap{
+			if(_imagePool[src]) return _imagePool[src] as Bitmap;
 			return null;
 		}
 		
 		
 		public function getTextrByUrl(src:String):Texture{
-			if(_imagePool[src]) return Image(_imagePool[src]).texture;
+			if(_imagePool[src]) return Texture.fromBitmap(_imagePool[src] as Bitmap);
 			return null;
 		}
 		
 		private function onItemComplete(evt:QueueLoaderEvent):void{
 			var bitmap:Bitmap = evt.content as Bitmap;
-			_imagePool[evt.title] = new Image(Texture.fromBitmap(evt.content));
+			_imagePool[evt.title] = bitmap;
 		}
 		
 		override public function dispose():void{

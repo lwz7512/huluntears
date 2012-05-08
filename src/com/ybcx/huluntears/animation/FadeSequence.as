@@ -30,16 +30,20 @@ package com.ybcx.huluntears.animation{
 		//定时器
 		private var _timer:Timer;
 		
+		//闪烁终止状态
+		private var _completeVisible:Boolean;
 		
 		/**
 		 * @param target 闪烁的对象
 		 * @param roundTime 一次闪烁经历的时长，秒为单位
 		 * @param roundNum 闪烁次数，如果为0，表示一直闪烁
 		 */ 
-		public function FadeSequence(target:DisplayObject, roundTime:Number, roundNum:int=0){
+		public function FadeSequence(target:DisplayObject, roundTime:Number, roundNum:int=0, completeToVisible:Boolean=true){
 			_target = target;
 			_roundTime = roundTime;
 			_roundNum = roundNum;
+			_completeVisible = completeToVisible;
+			
 			//透明度从0到1，再从1到0,经历两个阶段
 			_alphaDelta = 10/(2*roundTime*1000);
 			
@@ -61,7 +65,7 @@ package com.ybcx.huluntears.animation{
 			
 			//当闪烁次数到达后，恢复可见性，准备交互
 			if(!_timer.running){
-				_target.alpha = 1;
+				if(_completeVisible) _target.alpha = 1;
 				var end:Event = new Event("complete");
 				this.dispatchEvent(end);
 				dispose();
