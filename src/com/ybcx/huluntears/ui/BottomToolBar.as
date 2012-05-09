@@ -2,6 +2,8 @@ package com.ybcx.huluntears.ui{
 	
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
+	import com.ybcx.huluntears.animation.FadeOut;
+	import com.ybcx.huluntears.animation.ZoomOut;
 	import com.ybcx.huluntears.data.ItemManager;
 	import com.ybcx.huluntears.data.ItemVO;
 	import com.ybcx.huluntears.events.GameEvent;
@@ -91,6 +93,22 @@ package com.ybcx.huluntears.ui{
 		}
 		
 		/**
+		 * 移除使用过的道具
+		 */ 
+		public function removeUsedItem(itemName:String):void{
+			var target:DisplayObject = _itemsLayer.getChildByName(itemName);
+			new FadeOut(target,1, function():void{
+				_itemsLayer.removeChild(target,true);				
+				relayoutItems();
+			});
+		}
+		
+		//TODO, 重新排列道具栏道具，以动画的形式，像左移动
+		private function relayoutItems():void{
+			
+		}
+		
+		/**
 		 * 查找道具印记位置
 		 */ 
 		public function getItemBGPosByName(itemName:String):Point{
@@ -110,7 +128,7 @@ package com.ybcx.huluntears.ui{
 		}		
 		
 		/**
-		 * 载入新找到的道具图片，放到相应的占位符上，形成道具<br/>
+		 * 显示新找到的道具图片，放到相应的占位符上，形成道具<br/>
 		 * 场景中都是普通的可拾起的图片，点击后可自动飞入道具栏
 		 */ 
 		public function showItemFound(img:PickupImage):void{			
@@ -159,7 +177,7 @@ package com.ybcx.huluntears.ui{
 
 		
 		/**
-		 * 处理返回按钮
+		 * 处理左右滚动道具按钮
 		 */ 
 		private function onSceneTouch(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(this);

@@ -2,6 +2,8 @@ package com.ybcx.huluntears.scenes{
 	
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
+	import com.ybcx.huluntears.data.ItemManager;
+	import com.ybcx.huluntears.data.ItemVO;
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.items.BaseItem;
 	import com.ybcx.huluntears.items.PickupImage;
@@ -11,6 +13,7 @@ package com.ybcx.huluntears.scenes{
 	import com.ybcx.huluntears.ui.ImageGroup;
 	import com.ybcx.huluntears.ui.WalkThroughLayer;
 	
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -44,18 +47,14 @@ package com.ybcx.huluntears.scenes{
 		private var _maskScenaryPath:String = "assets/firstmap/mask_scenary.png";
 		private var _lelechePath:String = "assets/firstmap/leleche.png";
 		
-		//TODO, 测试道具
-		private var zhuziLeftPath:String = "assets/firstitems/1_Toolbar_zhuzi_1.png";
-		private var zhuzi_pickup:PickupImage;
-		private var zhuziX:Number = 100;
-		private var zhuziY:Number = 300;
-		
-		
+		//蒙古包底座，在上面搭建蒙古包
 		private var _mgbBase:ImageGroup;
 		private var _mgbX:Number = 200;
 		private var _mgbY:Number = 400;
 		
-
+		/**
+		 * 大部分场景图形，包括道具，景物，都放在前景层中，方便统一移动
+		 */ 
 		private var frontScenaryLayer:Sprite;
 		
 		//进入子场景入口热点图
@@ -84,31 +83,41 @@ package com.ybcx.huluntears.scenes{
 		private var _lastTouchX:Number;
 		private var _lastTouchY:Number;		
 		
-		//总下载数
-		private var queLength:int;
-		//已下载数
-		private var loadedCount:int;
-		
-		
+		/**
+		 * 道具管理，获得道具信息
+		 */ 
+		private var _itemManager:ItemManager;
 		
 		
 		/**
 		 * 第一关主场景，包含4个子场景
 		 */ 
-		public function FirstMapScene(){
-			super();		
+		public function FirstMapScene(manager:ItemManager){
+			super();	
+			
+			_itemManager = manager;
+		}
+		
+		
+		
+		override public function get itemsToPickup():Array{
+			return ["zhuzi_left","zhuzi_right","zhanlu"];
 		}
 		
 		/**
 		 * 碰撞检查成功了，可以放了在场景中了
 		 */ 
-		//TODO, 后面还要检查顺序
+		//TODO, 后面要处理正确叠放的状态，比如添加道具后，应该切换成什么中间状态
 		override public function putItemHitted(img:Image,where:Point):void{
 			frontScenaryLayer.addChild(img);
 			//FIXME, 前景层移动的偏差要考虑			
 			img.x = where.x-frontScenaryLayer.x;
 			img.y = where.y-frontScenaryLayer.y;
 			
+		}
+		
+		override public function allowToPut(itemName:String):Boolean{
+			return _mgbBase.acceptItem(itemName);
 		}
 		
 		override public function get hitTestRect():Rectangle{			
@@ -121,10 +130,17 @@ package com.ybcx.huluntears.scenes{
 			addDownloadTask(_nearScenaryPath);
 			addDownloadTask(_maskScenaryPath);
 			addDownloadTask(_lelechePath);
-			
-			addDownloadTask(zhuziLeftPath);
-			
+			//加载道具图片
+			addItems();
+			//下载所有素材
 			download();
+		}
+		
+		private function addItems():void{
+			for(var i:int=0; i<itemsToPickup.length; i++){
+				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
+				addDownloadTask(item.inToolbarPath);
+			}
 		}
 
 		override protected function detached():void{			
@@ -296,19 +312,20 @@ package com.ybcx.huluntears.scenes{
 			_mgbBase = new ImageGroup();
 			_mgbBase.x = _mgbX;
 			_mgbBase.y = _mgbY;
+			//设置接收的道具，用于放置顺序检查
+			_mgbBase.acceptNames = itemsToPickup;
 			frontScenaryLayer.addChild(_mgbBase);
 			
 			//设置碰撞检测对象
 			this.hitTestDO = _mgbBase;
 			
-			//添加道具
-			zhuzi_pickup = new PickupImage(getTextrByUrl(zhuziLeftPath));
-			zhuzi_pickup.x = zhuziX;
-			zhuzi_pickup.y = zhuziY;
-			zhuzi_pickup.name = "zhuzi_left";
-			zhuzi_pickup.bitmap = this.getBitmapByUrl(zhuziLeftPath);
-			
-			frontScenaryLayer.addChild(zhuzi_pickup);
+			//显示要被拾起的道具			
+			for(var i:int=0; i<itemsToPickup.length; i++){
+				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
+				var bitmap:Bitmap = getBitmapByUrl(item.inToolbarPath);
+				var image:PickupImage = _itemManager.createPickupByData(item,bitmap);
+					frontScenaryLayer.addChild(image);
+			}
 			
 		}
 		

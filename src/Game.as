@@ -2,10 +2,12 @@ package{
 	
 	import com.ybcx.huluntears.animation.FadeIn;
 	import com.ybcx.huluntears.animation.MotionTo;
+	import com.ybcx.huluntears.animation.Shake;
 	import com.ybcx.huluntears.animation.ZoomOut;
 	import com.ybcx.huluntears.data.ItemConfig;
 	import com.ybcx.huluntears.data.ItemManager;
 	import com.ybcx.huluntears.events.GameEvent;
+	import com.ybcx.huluntears.game.GameBase;
 	import com.ybcx.huluntears.items.BaseItem;
 	import com.ybcx.huluntears.items.PickupImage;
 	import com.ybcx.huluntears.scenes.*;
@@ -13,7 +15,6 @@ package{
 	import com.ybcx.huluntears.ui.*;
 	
 	import flash.geom.Point;
-	import flash.geom.Rectangle;
 	
 	import starling.animation.Tween;
 	import starling.core.Starling;
@@ -27,7 +28,7 @@ package{
 	 * 
 	 * 2012/04/06
 	 */ 
-	public class Game extends Sprite{
+	public class Game extends GameBase{
 		
 		//道具配置
 		private var itemConfig:ItemConfig;
@@ -66,22 +67,20 @@ package{
 		
 		
 		public function Game(){
-			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
-			
-			this.addEventListener(GameEvent.HINT_USER, onMessage);
-			
+									
 			this.addEventListener(GameEvent.LOADING_PROGRESS, onLoadingProgress);
 			this.addEventListener(GameEvent.LOADING_COMPLETE, onSceneLoaded);
+			
+			this.addEventListener(GameEvent.HINT_USER, onMessage);
 			
 			this.addEventListener(GameEvent.ITEM_SELECTED, onItemSelected);
 			this.addEventListener(GameEvent.ITEM_DESTROYED, onItemDestroy);
 			this.addEventListener(GameEvent.ITEM_FOUND, onItemFound);
 			this.addEventListener(GameEvent.HITTEST_SUCCESS, onItemHitted);
+			this.addEventListener(GameEvent.HITTEST_FAILED, onItemFailed);
 		}
-		
-		
-		private function onStage(evt:Event):void{
-			this.removeEventListeners(Event.ADDED_TO_STAGE);				
+				
+		override protected function init():void{			
 			
 			//FIXME, 加黑色背景，解决场景切换闪烁的问题
 			//2012/04/25
@@ -91,7 +90,7 @@ package{
 			//加载道具栏
 			initLoadToolbar();
 			
-			//道具移动层
+			//道具移动层，使用时要置顶
 			_itemMoveLayer = new Sprite();
 			this.addChild(_itemMoveLayer);
 			
@@ -112,7 +111,7 @@ package{
 			itemManager.cacheItemVOs(itemConfig.getFirstScenaryItems());
 			
 			_uniToolBar = new BottomToolBar(itemManager);
-			//FIXME, 先隐藏
+			//FIXME, 先隐藏，因为故事场景不需要看到道具栏
 			_uniToolBar.visible = false;
 			//道具栏一直在舞台上，只是有时隐藏了
 			this.addChild(_uniToolBar);
@@ -176,7 +175,7 @@ package{
 			clearCurrentScene();
 			
 			if(!firstMapScene){
-				firstMapScene = new FirstMapScene();
+				firstMapScene = new FirstMapScene(itemManager);
 				firstMapScene.toolbar = _uniToolBar;
 				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE,goSubScene);	
 			}
@@ -262,7 +261,7 @@ package{
 			}
 		}
 		
-		
+		//--------------- 其他导航 ----------------------------------
 		
 		
 		
@@ -273,19 +272,39 @@ package{
 		
 
 //		---------------  道具操作 -------------------------------------
+		private function onItemFailed(evt:GameEvent):void{
+			var item:BaseItem = evt.context as BaseItem;
+			new Shake(item);
+		}
+		
+		//TODO, 这里要考虑如何处理道具添加顺序的问题
 		private function onItemHitted(evt:GameEvent):void{
-			var item:BaseItem = evt.context as BaseItem;			
+			var item:BaseItem = evt.context as BaseItem;
+			
+			//判断是否可以放置
+			if(!currentScene.allowToPut(item.name)){
+//				trace("not allow to put: "+item.name);
+				new Shake(item);
+				return;
+			}
+			
+			//放道具到场景中
 			currentScene.putItemHitted(item.img, new Point(item.x,item.y));
-		}		
+			
+			//清理用过的对象
+			clearContainer(_itemMoveLayer);
+			_uniToolBar.removeUsedItem(item.name);
+		}
 		
 		private function onItemSelected(evt:GameEvent):void{
 			var item:BaseItem = evt.context as BaseItem;
+			//生成克隆的道具
 			var cloned:BaseItem = item.clone();
 			cloned.globalHitTestRect = currentScene.hitTestRect;
 			_itemMoveLayer.addChild(cloned);
 		}		
 		private function onItemDestroy(evt:GameEvent):void{			
-			_itemMoveLayer.removeChildren(0,-1,true);
+			clearContainer(_itemMoveLayer);
 		}
 		
 		private function onItemFound(evt:GameEvent):void{
@@ -293,8 +312,7 @@ package{
 			//移动过后的位置
 			var movePickupPos:Point = pickup.localToGlobal(new Point(0,0));
 			//从原来所在的容器中移除
-			pickup.removeFromParent();
-			
+			pickup.removeFromParent();			
 			
 			var itemPosInToolbar:Point = _uniToolBar.getItemBGPosByName(pickup.name);
 			if(!itemPosInToolbar){
@@ -305,66 +323,59 @@ package{
 			pickup.disppearedPos(itemPosInToolbar.x,itemPosInToolbar.y);
 			//新的起始位置
 			pickup.x = movePickupPos.x;
-			pickup.y = movePickupPos.y;
-			
-			//道具临时容器置顶
-			moveToTop(_itemMoveLayer);
+			pickup.y = movePickupPos.y;					
 			
 			//显示临时道具到容器中，准备飞行
 			_itemMoveLayer.addChild(pickup);
 			
 			pickup.flying(function():void{
 				_uniToolBar.showItemFound(pickup);
-				_itemMoveLayer.removeChildren(0,-1,true);
+				clearContainer(_itemMoveLayer);
 			});
 			
 		}
 		
-		private function getCurrentSceneHitTestPt():Point{
-			var rect:Rectangle = currentScene.hitTestRect;
-			
-			return new Point(rect.x+rect.width/2, rect.y+rect.height/2);
-		}
+
 		
 //		--------------------  common operation --------------------------------------------				
 		
-		private function onMessage(evt:GameEvent):void{
-			var hint:AutoDisappearTip = new AutoDisappearTip();
-			hint.message = evt.context as String;
-			this.addChild(hint);
-			this.centerMessage(hint);
-		}			
-		
-		
-		private function centerMessage(view:DisplayObject):void{
-			var endX:Number = this.stage.stageWidth-view.width >>1;
-			var endY:Number = this.stage.stageHeight-view.height >>1;
-			new MotionTo(view,endX,endY,null,1,true);
-			new ZoomOut(view);
-		}
-		
-		
-		private function onLoadingProgress(evt:GameEvent):void{
-			_loadingView.progress = evt.context as Number;
-		}
 		
 		/**
-		 * 每个场景加载完成，都要做这个清理进度画面的工作
-		 */ 
+		 * 每个场景加载完成，都要做这个清理进度画面的工作<br/>
+		 * 动态调整各层顺序：<br/>
+		 * ------------- blackBg -----------------------<br/>
+		 * ------------- currentScene ------------------<br/>
+		 * ------------- toolbar ------------------------<br/>
+		 * ------------- itemMoveLayer ---------------<br/>
+		 * <br/>
+		 * 2012/05/09
+		 */
 		private function onSceneLoaded(evt:GameEvent):void{
 			this.removeChild(_loadingView);
 			
 			//除了故事场景外，其他场景都有道具栏
 			if(currentScene!=startScene) {
+				//道具置顶
 				_uniToolBar.showToolbar();
+				//道具临时容器置顶
+				moveToTop(_itemMoveLayer);
 			}else{
 				_uniToolBar.visible = false;
 			}
-						
-		}			
+			
+		}
 		
-		private function moveToTop(display:DisplayObject):void{
-			this.setChildIndex(display,this.numChildren-1);
+		private function onLoadingProgress(evt:GameEvent):void{
+			_loadingView.progress = evt.context as Number;
+		}
+		
+		private function onMessage(evt:GameEvent):void{
+			var hint:AutoDisappearTip = new AutoDisappearTip();
+			hint.message = evt.context as String;
+			//先定位
+			this.centerMessage(hint);
+			//后显示
+			this.addChild(hint);
 		}
 		
 		/**
@@ -373,7 +384,7 @@ package{
 		private function showLoadingView(msg:String):void{
 			//显示加载画面。。。
 			this.addChild(_loadingView);
-			_loadingView.loading(msg);	
+			_loadingView.loading(msg);
 		}
 		
 		/**
@@ -402,10 +413,7 @@ package{
 		 */ 
 		private function fadeInScene(scene:BaseScene):void{
 			//新出的淡入
-			scene.alpha = 0;
-			var fadeIn:Tween = new Tween(scene,0.6);
-			fadeIn.animate("alpha",1);
-			Starling.juggler.add(fadeIn);
+			new FadeIn(scene,0.6);			
 		}
 		
 	} //end of class

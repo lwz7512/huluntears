@@ -96,7 +96,7 @@ package com.ybcx.huluntears.ui{
 			
 			//先创建，不显示，加载时改变文字内容，并显示
 			_loadingSceneTxt = new TextField(200,20,"loading...");
-//			_loadingSceneTxt.color = 0xFFFFFF;
+			_loadingSceneTxt.color = 0xFFFFFF;
 			_loadingSceneTxt.x = 350;
 			_loadingSceneTxt.y = 520;
 			

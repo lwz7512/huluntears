@@ -76,9 +76,12 @@ package com.ybcx.huluntears.items{
 				if(!_hitTestRect) return;
 				
 				if(this.bounds.intersects(_hitTestRect)){
-					hitted = true;					
+					hitted = true;
+					//FIXME, VISUAL FEEDBACK
+//					this.alpha = 0.6;
 				}else{
 					hitted = false;
+//					this.alpha = 1;
 				}
 				
 			}// end of hover
@@ -91,26 +94,36 @@ package com.ybcx.huluntears.items{
 			if(touch.phase==TouchPhase.ENDED){
 				_touched = !_touched;
 				var gmevt:GameEvent;
+								
+				
 				//非跟随道具才能派发选中事件
 				if(!_followable){					
 					gmevt = new GameEvent(GameEvent.ITEM_SELECTED,this);
 					this.dispatchEvent(gmevt);
 					return;
 				}
-				if(hitted){//碰撞成功
-					gmevt = new GameEvent(GameEvent.HITTEST_SUCCESS,this);
+				
+				if(_followable && touch.globalY>520){//在道具栏上点击时，移除道具
+					gmevt = new GameEvent(GameEvent.ITEM_DESTROYED,this);
 					this.dispatchEvent(gmevt);
 					return;
 				}
-				if(touch.globalY>520){//在道具栏上点击时，移除道具
-					gmevt = new GameEvent(GameEvent.ITEM_DESTROYED,this);
+				
+				//处于跟随鼠标状态...
+				if(hitted){//碰撞成功
+					gmevt = new GameEvent(GameEvent.HITTEST_SUCCESS,this);
 					this.dispatchEvent(gmevt);					
+				}else{//碰撞不成功，颤动
+					gmevt = new GameEvent(GameEvent.HITTEST_FAILED,this);
+					this.dispatchEvent(gmevt);
 				}
+				
 			}
 		}
 				
 		public function set content(bp:Bitmap):void{
 			_content = bp;
+			
 			var img:Image = new Image(Texture.fromBitmap(bp));
 			this.addChild(img);
 		}
@@ -137,9 +150,7 @@ package com.ybcx.huluntears.items{
 			cloned.name = this.name;
 			cloned.content = new Bitmap(_content.bitmapData.clone(),"auto",true);
 			cloned.followable = true;
-			cloned.x = this.x;
-			cloned.y = this.y;
-			
+
 			return cloned;
 		}
 		

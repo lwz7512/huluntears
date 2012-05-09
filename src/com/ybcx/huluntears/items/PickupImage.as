@@ -21,7 +21,9 @@ package com.ybcx.huluntears.items{
 	 */ 
 	public class PickupImage extends Image{
 		
-		//保存一个位图对象，好方便给道具栏用
+		/**
+		 * 保存一个位图对象，好方便给道具栏选择道具后克隆用
+		 */ 
 		private var _bitmap:Bitmap;
 		
 		private var _destinationX:Number = 0;
@@ -36,6 +38,9 @@ package com.ybcx.huluntears.items{
 			this.addEventListener(TouchEvent.TOUCH, onTouch);
 		}
 		
+		/**
+		 * 设置道具的位图，方便克隆道具
+		 */ 
 		public function set bitmap(bp:Bitmap):void{
 			_bitmap = bp;
 		}

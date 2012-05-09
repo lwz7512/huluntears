@@ -59,6 +59,20 @@ package com.ybcx.huluntears.scenes.base{
 		}
 		
 		/**
+		 * 当前场景中散落的道具列表，子类需要重载
+		 */ 
+		public function get itemsToPickup():Array{
+			return [];
+		}
+		
+		/**
+		 * 是否允许放置当前选择的道具，需要子类重载
+		 */ 
+		public function allowToPut(itemName:String):Boolean{
+			return false;
+		}
+		
+		/**
 		 * 子类要重载，实现碰撞检测后的动作
 		 */ 
 		public function putItemHitted(img:Image, where:Point):void{
@@ -66,7 +80,7 @@ package com.ybcx.huluntears.scenes.base{
 		}
 		
 		/**
-		 * 每个场景，当前只有一个待碰撞检查对象，用于道具与之交互
+		 * 每个场景，当前只激活一个待碰撞检查对象，用于道具与之交互
 		 */ 
 		public function get hitTestItem():DisplayObject{
 			return hitTestDO;

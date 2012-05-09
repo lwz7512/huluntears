@@ -111,6 +111,7 @@ package com.ybcx.huluntears.ui{
 			this.removeEventListener(evt.type, arguments.callee);
 			
 			var maskBitmapData:BitmapData = new BitmapData(this.stage.stageWidth,this.stage.stageHeight,true,_maskColor);
+			//铺满屏幕
 			_maskLayer = new Image(Texture.fromBitmapData(maskBitmapData));
 			_maskLayer.x = -this.localToGlobal(new Point(0,0)).x;
 			_maskLayer.y = -this.localToGlobal(new Point(0,0)).y;

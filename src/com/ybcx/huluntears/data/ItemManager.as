@@ -1,7 +1,11 @@
 package com.ybcx.huluntears.data{
 	
+	import com.ybcx.huluntears.items.PickupImage;
+	
 	import flash.display.Bitmap;
 	import flash.utils.Dictionary;
+	
+	import starling.textures.Texture;
 	
 	/**
 	 * 道具管理器，保存道具的名称和路径关系，维持一个对象池<br/>
@@ -19,6 +23,14 @@ package com.ybcx.huluntears.data{
 			itemVOs = [];
 		}	
 		
+		public function createPickupByData(data:ItemVO,bitmap:Bitmap):PickupImage{
+			var img:PickupImage = new PickupImage(Texture.fromBitmap(bitmap));
+			img.bitmap = bitmap;
+			img.name = data.itemName;
+			img.x = data.itemX;
+			img.y = data.itemY;
+			return img;
+		}
 		
 		public function cacheItemVOs(items:Array):void{
 			//每次只存放一关的道具

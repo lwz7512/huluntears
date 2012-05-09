@@ -11,7 +11,8 @@ package com.ybcx.huluntears.data{
 		}
 		
 		/**
-		 * 第一关所用到的道具
+		 * 第一关所用到的全部道具，具体用在哪个子场景<br/>
+		 * 在各自场景中实现get itemsToPickup()方法
 		 */ 
 		public function getFirstScenaryItems():Array{
 			var items:Array = [];
@@ -22,6 +23,8 @@ package com.ybcx.huluntears.data{
 			zhuzi_1.bgImagePath = "assets/firstitems/1_Toolbar_zhuzi_1.1.png";
 			zhuzi_1.inToolbarPath = "assets/firstitems/1_Toolbar_zhuzi_1.png";
 			zhuzi_1.inScenePath = "assets/firstitems/1_Toolbar_zhuzi_1.png";
+			zhuzi_1.itemX = 100;
+			zhuzi_1.itemY = 350;
 			
 			var zhuzi_2:ItemVO = new ItemVO();
 			zhuzi_2.itemName = "zhuzi_right";
@@ -29,13 +32,17 @@ package com.ybcx.huluntears.data{
 			zhuzi_2.bgImagePath = "assets/firstitems/1_Toolbar_zhuzi_2.1.png";
 			zhuzi_2.inToolbarPath = "assets/firstitems/1_Toolbar_zhuzi_2.png";
 			zhuzi_2.inScenePath = "assets/firstitems/1_Toolbar_zhuzi_2.png";
+			zhuzi_2.itemX = 200;
+			zhuzi_2.itemY = 400;
 			
 			var zhanlu:ItemVO = new ItemVO();
-			zhanlu.itemName = "zhuzi_right";
+			zhanlu.itemName = "zhanlu";
 			zhanlu.index = 2;
 			zhanlu.bgImagePath = "assets/firstitems/1_Toolbar_zhanlu_4.1.png";
 			zhanlu.inToolbarPath = "assets/firstitems/1_Toolbar_zhanlu_4.png";
 			zhanlu.inScenePath = "assets/firstitems/1_Toolbar_zhanlu_4.png";
+			zhanlu.itemX = 150;
+			zhanlu.itemY = 380;
 			
 			items.push(zhuzi_1);
 			items.push(zhuzi_2);
