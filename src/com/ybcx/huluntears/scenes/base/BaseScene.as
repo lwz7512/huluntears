@@ -2,6 +2,7 @@ package com.ybcx.huluntears.scenes.base{
 	
 	import com.hydrotik.queueloader.QueueLoaderEvent;
 	import com.ybcx.huluntears.events.GameEvent;
+	import com.ybcx.huluntears.items.BaseItem;
 	import com.ybcx.huluntears.ui.BottomToolBar;
 	import com.ybcx.huluntears.utils.ImageQueLoader;
 	
@@ -59,7 +60,7 @@ package com.ybcx.huluntears.scenes.base{
 		}
 		
 		/**
-		 * 当前场景中散落的道具列表，子类需要重载
+		 * 当前场景中散落的道具列表，子类需要重载，据此下载相应的道具图片
 		 */ 
 		public function get itemsToPickup():Array{
 			return [];
@@ -73,9 +74,11 @@ package com.ybcx.huluntears.scenes.base{
 		}
 		
 		/**
-		 * 子类要重载，实现碰撞检测后的动作
+		 * 子类要重载，实现碰撞检测后的动作，全凭图片的name来匹配了
+		 * @param img, 搭建场景舞台是用的图片，可能已经有坐标了
+		 * @param where, 图片放置的位置，可选参数
 		 */ 
-		public function putItemHitted(img:Image, where:Point):void{
+		public function putItemHitted(itemName:String, where:Point):void{
 			
 		}
 		
@@ -87,7 +90,7 @@ package com.ybcx.huluntears.scenes.base{
 		}
 		
 		/**
-		 * 碰撞检查矩形
+		 * 碰撞检查矩形，生成克隆道具时，需要从当前场景中知道碰撞有效区域
 		 */
 		public function get hitTestRect():Rectangle{
 			return null;
@@ -100,7 +103,9 @@ package com.ybcx.huluntears.scenes.base{
 			return _loadCompleted;
 		}
 		
-		
+		/**
+		 * 似乎没用了，只通过场景内道具派发事件，然后由Game来处理道具栏
+		 */ 
 		public function set toolbar(tb:BottomToolBar):void{
 			_toolBar = tb;
 		}
@@ -181,7 +186,11 @@ package com.ybcx.huluntears.scenes.base{
 		 * 开始下载图片
 		 */
 		protected function download():void{
-			queLength = _queLoader.getQueuedItems().length;			
+			queLength = _queLoader.getQueuedItems().length;
+			if(!queLength){
+				trace("download que is blank!");
+				return;
+			}
 			_queLoader.execute();
 		}
 		
@@ -212,24 +221,32 @@ package com.ybcx.huluntears.scenes.base{
 			
 			//不能销毁加载器，但是可以移除事件监听
 			//因为还要从加载器中取图片对象
-			while(_queLoader.getLoadedItems().length){
-				_queLoader.removeItemAt(_queLoader.getLoadedItems().length-1);
+			_queLoader.reset();
+			
+			if(!_loadCompleted){
+				readyToShow();	
+			}else{
+				lazyLoaded();
 			}
+			
+			_loadCompleted = true;
+		}
+		
+		/**
+		 * 可以显示已经下载的资源了，只调用一次
+		 */
+		protected function readyToShow():void{
+			
+		}
+		
+		/**
+		 * 第二批下载资源
+		 */ 
+		protected function lazyLoaded():void{
 			_queLoader.removeEventListener("ITEM_COMPLETE",onItemLoaded);
 			_queLoader.removeEventListener("QUEUE_COMPLETE",onQueueComplete);
 			_queLoader.removeEventListener("QUEUE_PROGRESS",onQueueProgress);
 			_queLoader.removeEventListener("ITEM_ERROR",onItemError);
-			
-			_loadCompleted = true;
-			
-			readyToShow();
-		}
-		
-		/**
-		 * 可以显示已经下载的资源了
-		 */
-		protected function readyToShow():void{
-			
 		}
 		
 		private function onItemError(evt:QueueLoaderEvent):void{

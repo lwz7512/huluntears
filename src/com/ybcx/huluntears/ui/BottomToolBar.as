@@ -14,6 +14,7 @@ package com.ybcx.huluntears.ui{
 	
 	import flash.display.Bitmap;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import starling.animation.Juggler;
 	import starling.animation.Tween;
@@ -21,11 +22,13 @@ package com.ybcx.huluntears.ui{
 	import starling.display.Button;
 	import starling.display.DisplayObject;
 	import starling.display.Image;
+	import starling.display.Quad;
 	import starling.display.Sprite;
 	import starling.events.Event;
 	import starling.events.Touch;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
+	import starling.extensions.ClippedSprite;
 	import starling.textures.Texture;
 	
 	/**
@@ -72,12 +75,17 @@ package com.ybcx.huluntears.ui{
 		//依靠这个值，来显示攻略图
 		private var _raiderIndex:int = 0;
 				
-		//道具显示层
-		private var _itemsLayer:Sprite;
+		//道具显示层，有遮罩功能
+		private var _itemsLayer:ClippedSprite;
 		//道具数据管理器
 		private var _manager:ItemManager;
+				
 		
 		
+		/**
+		 * 内部元素位置均为相对位置，不再计算全局位置<br/>
+		 * 显示对象结构尽量简单，不嵌套多层<br/>
+		 */ 
 		public function BottomToolBar(manager:ItemManager){
 			super();			
 			
@@ -89,7 +97,59 @@ package com.ybcx.huluntears.ui{
 			_queLoader.addEventListener(QueueLoaderEvent.QUEUE_COMPLETE, onQueComplete);
 			
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
-			this.addEventListener(TouchEvent.TOUCH, onSceneTouch);
+		}
+				
+		private  function onStage(evt:Event):void{
+			this.removeEventListener(evt.type, arguments.callee);			
+			if(_loadCompleted) return;
+			
+			//道具显示容器
+			_itemsLayer = new ClippedSprite();
+			_itemsLayer.y = 30;
+			_itemsLayer.x = 20;		
+			//设置全局剪裁区域...
+			this.addChild(_itemsLayer);
+			var origin:Point = _itemsLayer.localToGlobal(new Point(10,0));			
+			_itemsLayer.clipRect = new Rectangle(origin.x,origin.y,660,60);
+			
+			//加载道具栏背景图
+			_queLoader.addImageByUrl(_toolBackgroundPath);
+			
+			_queLoader.addImageByUrl(_toolReelUpPath);
+			_queLoader.addImageByUrl(_toolReelDownPath);
+			
+			_queLoader.addImageByUrl(_toolLeftArrowUpPath);
+			_queLoader.addImageByUrl(_toolLeftArrowDownPath);
+			
+			_queLoader.addImageByUrl(_toolRightArrowUpPath);
+			_queLoader.addImageByUrl(_toolRightArrowDownPath);
+			
+			//加载当第一关道具
+			loadItemBGs();
+			
+			//发出请求
+			_queLoader.execute();
+			
+		}
+		
+		
+		/**
+		 * 晃动卷轴
+		 */ 
+		public function shakeReel():void{				
+			_raiderIndex ++;
+			var rotateRight:Tween = new Tween(_reelTool,0.1);
+			rotateRight.animate("rotation",Math.PI/36);
+			rotateRight.onComplete = function():void{
+				var rotateBack:Tween = new Tween(_reelTool,0.1);
+				rotateBack.animate("rotation",-Math.PI/36);
+				rotateBack.onComplete = function():void{
+					//恢复初始状态
+					_reelTool.rotation = 0;					
+				}
+				Starling.juggler.add(rotateBack);
+			};
+			Starling.juggler.add(rotateRight);
 		}
 		
 		/**
@@ -103,18 +163,38 @@ package com.ybcx.huluntears.ui{
 			});
 		}
 		
-		//TODO, 重新排列道具栏道具，以动画的形式，像左移动
-		private function relayoutItems():void{
-			
-		}
-		
 		/**
 		 * 查找道具印记位置
 		 */ 
 		public function getItemBGPosByName(itemName:String):Point{
 			var result:DisplayObject = _itemsLayer.getChildByName(itemName);
-			if(result) return result.localToGlobal(new Point(0,0));
-			return null;
+			var target:Point;
+			if(result) {
+				target = result.localToGlobal(new Point(0,0));
+				var rightBoundary:Number = 630;
+				var leftBoundary:Number = 60;
+				if(target.x>rightBoundary){
+					pullbackItems(rightBoundary-target.x);
+					target.offset(rightBoundary-target.x,0);
+					return target;
+				}else if(target.x<leftBoundary){
+					pullbackItems(leftBoundary-target.x);
+					target.offset(leftBoundary-target.x,0);
+					return target;
+				}else{
+					return target;
+				}
+			}
+			return new Point(0,0);
+		}
+		
+		/**
+		 * 让舞台之外的道具会到显示区域中
+		 */ 
+		private function pullbackItems(offset:Number):void{
+			for(var i:int=0; i<_itemsLayer.numChildren; i++){
+				_itemsLayer.getChildAt(i).x += offset;
+			}
 		}
 		
 		/**
@@ -136,9 +216,12 @@ package com.ybcx.huluntears.ui{
 			var item:BaseItem = new BaseItem();
 			item.content = img.bitmap;
 			item.name = img.name;
-			//放置在道具栏中
+			item.groupItemNum = img.groupItemNum;
+			
+			//放置在道具栏中，并删除印记
 			putItemOnItsbg(item);
-						
+			//检查是否有道具合并
+			mergeItemsFound(item);		
 		}
 		
 		private function putItemOnItsbg(item:BaseItem):void{
@@ -155,70 +238,102 @@ package com.ybcx.huluntears.ui{
 			//显示新道具
 			_itemsLayer.addChild(item);
 		}
-		
-		/**
-		 * 晃动卷轴
-		 */ 
-		public function shakeReel():void{				
-			_raiderIndex ++;
-			var rotateRight:Tween = new Tween(_reelTool,0.1);
-			rotateRight.animate("rotation",Math.PI/36);
-			rotateRight.onComplete = function():void{
-				var rotateBack:Tween = new Tween(_reelTool,0.1);
-				rotateBack.animate("rotation",-Math.PI/36);
-				rotateBack.onComplete = function():void{
-					//恢复初始状态
-					_reelTool.rotation = 0;					
-				}
-				Starling.juggler.add(rotateBack);
-			};
-			Starling.juggler.add(rotateRight);
-		}
 
-		
 		/**
-		 * 处理左右滚动道具按钮
-		 */ 
-		private function onSceneTouch(evt:TouchEvent):void{
-			var touch:Touch = evt.getTouch(this);
-			if (touch == null) return;
-			
-		}
-		
-		private  function onStage(evt:Event):void{
-			this.removeEventListener(evt.type, arguments.callee);			
-			if(_loadCompleted) return;
-			
-			//道具显示容器
-			_itemsLayer = new Sprite();
-			_itemsLayer.x = 20;
-			_itemsLayer.y = this.stage.stageHeight-50;
-			this.addChild(_itemsLayer);
-			
-			//加载道具栏背景图
-			_queLoader.addImageByUrl(_toolBackgroundPath);
-						
-			_queLoader.addImageByUrl(_toolReelUpPath);
-			_queLoader.addImageByUrl(_toolReelDownPath);
-						
-			_queLoader.addImageByUrl(_toolLeftArrowUpPath);
-			_queLoader.addImageByUrl(_toolLeftArrowDownPath);
-
-			_queLoader.addImageByUrl(_toolRightArrowUpPath);
-			_queLoader.addImageByUrl(_toolRightArrowDownPath);
-			
-			//加载当第一关道具
-			loadItemBGs();
-			
-			//发出请求
-			_queLoader.execute();
-			
-		}
-		
-		/**
-		 * 载入道具印记图片
+		 * 使用过一个道具后，重新排列道具栏道具<br/>
+		 * 新载入组合道具后，重新排列<br/>
+		 * 按照子对象索层级，层级小的排最左边<br/>
 		 */
-		//FIXME, 将来可以载入其他关的道具
+		private function relayoutItems():void{
+			var itemNum:int = _itemsLayer.numChildren;
+			var itemHGap:Number = 4;
+			var itemStartX:Number = 10;
+			//先排列标准道具
+			for(var i:int=0; i<itemNum; i++){
+				if(_itemsLayer.getChildAt(i) is BaseItem){
+					//水平重排
+					_itemsLayer.getChildAt(i).x = itemStartX;
+					//垂直重排
+					if(_itemsLayer.getChildAt(i).height<30){
+						_itemsLayer.getChildAt(i).y = 20;
+					}
+					itemStartX += _itemsLayer.getChildAt(i).width+itemHGap;
+				}
+			}
+			//占位道具排在后面
+			for(var j:int=0; j<itemNum; j++){
+				if(_itemsLayer.getChildAt(j) is ItemPlaceHolder){
+					_itemsLayer.getChildAt(j).x = itemStartX;
+					//垂直重排
+					if(_itemsLayer.getChildAt(j).height<30){
+						_itemsLayer.getChildAt(j).y = 20;
+					}
+					itemStartX += _itemsLayer.getChildAt(j).width+itemHGap;
+				}
+			}
+		}
+		
+		
+		/**
+		 * 每次找到一个道具，就判断是否该组合道具了
+		 */ 	
+		private function mergeItemsFound(item:BaseItem):void{
+			//判断是否找齐道具？
+			var mergable:Boolean = needToMerge(item);
+			if(!mergable) return;
+			
+			//移除即将组合的道具
+			var groupName:String = item.groupName;
+			var itemNum:int = _itemsLayer.numChildren;
+			var collectedItem:DisplayObject;
+			for(var i:int=itemNum-1; i>-1; i--){
+				collectedItem = _itemsLayer.getChildAt(i) as DisplayObject;
+				if(collectedItem.name.indexOf(groupName)>-1){
+					_itemsLayer.removeChildAt(i,true);					
+				}
+			}
+			
+			//如果有道具被合并，则载入组合道具
+			var groupItemPath:String = _manager.config.groupItemPath(item.groupName);
+			_queLoader.addItem(groupItemPath,null,{title : item.groupName});
+			trace("to load group: "+groupItemPath);
+			_queLoader.execute();
+		}
+		
+		/**
+		 * 从道具容器中查找给定名称的BaseItem，统计他们的数目，是否达到组合数
+		 */		
+		private function needToMerge(item:BaseItem):Boolean{
+			if(item.groupItemNum==1) return false;
+			if(!item.name){
+				trace("tamade...item name is null!");
+				return false;
+			}
+			var groupName:String = item.groupName;			
+			//遍历查找名字，做统计
+			var itemCounter:int = 0;
+			var itemNum:int = _itemsLayer.numChildren;
+			var collectedItem:BaseItem;
+			for(var i:int=0; i<itemNum; i++){
+				if(_itemsLayer.getChildAt(i) is BaseItem){
+					collectedItem = _itemsLayer.getChildAt(i) as BaseItem;					
+					if(collectedItem.name.indexOf(groupName)>-1) {
+						itemCounter++;						
+					}
+				}
+			}
+//			trace("collected item is : "+itemCounter+" for group "+groupName);
+			if(itemCounter==item.groupItemNum) {
+				return true;
+//				trace("collect all....");
+			}
+			
+			return false;
+		}
+		
+		/**
+		 * 一把载入当前关的，所有子场景的道具印记图片
+		 */		
 		private function loadItemBGs():void{
 			_itemsLayer.removeChildren(0,1);
 			
@@ -227,38 +342,69 @@ package com.ybcx.huluntears.ui{
 				var item:ItemVO = items[i] as ItemVO;
 				_queLoader.addImageByUrl(item.bgImagePath);
 			}
-			
-		}
-				
+		}				
 		
 		//加载队列完成
 		private function onQueComplete(evt:QueueLoaderEvent):void{
 			//清理队列
-			while(_queLoader.getLoadedItems().length){
-				_queLoader.removeItemAt(_queLoader.getLoadedItems().length-1);
-			}
-			//加载完成标志
-			_loadCompleted = true;							
+			_queLoader.reset();
 			
+			//判断是否为再次载入组合道具
+			showGroupItem(evt);
+			
+			//显示背景和按钮
 			showToolbarAssets();
 			
-			//显示道具印记
+			//显示占位道具
 			showItemBgs();
 			
 			//将道具层置顶
 			moveTop(_itemsLayer);
+			
+			//加载完成标志
+			_loadCompleted = true;
+		}
+		/**
+		 * 第二次查询才初始化组合道具，置于道具栏头部，并重新排列道具位置，恢复滚动前状态
+		 */ 
+		private function showGroupItem(evt:QueueLoaderEvent):void{
+			//基础道具已经被载入，才生成组合道具
+			if(_loadCompleted && _itemsLayer.numChildren){
+				//构建新的组合后道具BaseItem
+				var item:BaseItem = new BaseItem();
+				item.content = evt.content as Bitmap;
+				item.name = evt.title;
+				trace("group item loaded: "+evt.title);
+				//放在头部
+				_itemsLayer.addChildAt(item,0);
+				//重新排列所有道具位置。。。
+				relayoutItems();
+			}
 		}
 		
 		private function showItemBgs():void{
+			
+			if(_loadCompleted) return;
+			
 			var items:Array = _manager.getAllItems();	
-			var itemHGap:Number = 20;
-			var itemStartX:Number = 20;
+			var itemHGap:Number = 4;
+			var itemStartX:Number = 10;
+			var itemStartY:Number = 0;
 			for(var i:int=0; i<items.length; i++){
 				var item:ItemVO = items[i] as ItemVO;
 				
 				var imgBG:ItemPlaceHolder = new ItemPlaceHolder(_queLoader.getTextrByUrl(item.bgImagePath));
 				imgBG.x = itemStartX;
+				if(imgBG.height<30){//特殊处理道具比较矮的情况
+					imgBG.y = 20;
+				}else{
+					imgBG.y = itemStartY;					
+				}
+				//必须记住名字，做道具匹配用
 				imgBG.name = item.itemName;
+				//这块先淡化透明度吧，没有单独做图片
+				imgBG.alpha = 0.4;
+				//显示
 				_itemsLayer.addChild(imgBG);
 				
 				itemStartX += imgBG.width+itemHGap;
@@ -266,11 +412,14 @@ package com.ybcx.huluntears.ui{
 			
 		}
 		
-		private function moveTop(view:DisplayObject):void{
+		private function moveTop(view:DisplayObject):void{			
 			this.setChildIndex(view, this.numChildren-1);
 		}
 		
 		private function showToolbarAssets():void{
+			
+			if(_loadCompleted) return;
+			
 			toolReelUp = _queLoader.getTextrByUrl(_toolReelUpPath);
 			toolReelDown = _queLoader.getTextrByUrl(_toolReelDownPath);
 			toolLeftUpTxtr = _queLoader.getTextrByUrl(_toolLeftArrowUpPath);
@@ -279,17 +428,13 @@ package com.ybcx.huluntears.ui{
 			toolRightDownTxtr = _queLoader.getTextrByUrl(_toolRightArrowDownPath);
 			
 			//背景图
-			toolBackground = _queLoader.getImageByUrl(_toolBackgroundPath);
-			//道具栏
-			toolBackground.x = 0;
-			//应用底部
-			toolBackground.y = this.stage.stageHeight-toolBackground.height;
+			toolBackground = _queLoader.getImageByUrl(_toolBackgroundPath);			
 			this.addChild(toolBackground);						
 			
 			//卷轴			
 			_reelTool = new Button(toolReelUp,"",toolReelDown);
-			_reelTool.y = this.stage.stageHeight-60;
-			_reelTool.x = AppConfig.VIEWPORT_WIDTH-40;
+			_reelTool.x = AppConfig.VIEWPORT_WIDTH-36;
+			_reelTool.y = 30;
 			_reelTool.addEventListener(Event.TRIGGERED,function():void{
 				var reelOpen:GameEvent = new GameEvent(GameEvent.REEL_TRIGGERD,_raiderIndex);
 				dispatchEvent(reelOpen);
@@ -299,15 +444,65 @@ package com.ybcx.huluntears.ui{
 			//左箭头
 			toolLeftArrow = new Button(toolLeftUpTxtr,"",toolLeftDownTxtr);
 			toolLeftArrow.x = 10;
-			toolLeftArrow.y = 540;
+			toolLeftArrow.y = 50;
+			toolLeftArrow.addEventListener(TouchEvent.TOUCH, onLeftArrowTouch);
 			this.addChild(toolLeftArrow);
 			
 			//右箭头
 			toolRightArrow = new Button(toolRightUpTxtr,"",toolRightDownTxtr);
 			toolRightArrow.x = AppConfig.VIEWPORT_WIDTH-60;
-			toolRightArrow.y = 540;
+			toolRightArrow.y = 50;
+			toolRightArrow.addEventListener(TouchEvent.TOUCH, onRightArrowTouch);
 			this.addChild(toolRightArrow);
 			
+		}
+		
+		private function onLeftArrowTouch(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(toolLeftArrow);
+			if(!touch) return;
+			
+			if(touch.phase==TouchPhase.BEGAN){
+				this.addEventListener(Event.ENTER_FRAME, function():void{
+					scrollItemsRight();
+				});
+			}
+			if(touch.phase==TouchPhase.ENDED){
+				this.removeEventListeners(Event.ENTER_FRAME);
+			}
+			
+		}
+		private function onRightArrowTouch(evt:TouchEvent):void{
+			var touch:Touch = evt.getTouch(toolRightArrow);
+			if(!touch) return;
+			
+			if(touch.phase==TouchPhase.BEGAN){
+				this.addEventListener(Event.ENTER_FRAME, function():void{
+					scrollItemsLeft();
+				});
+			}
+			if(touch.phase==TouchPhase.ENDED){
+				this.removeEventListeners(Event.ENTER_FRAME);
+			}
+			
+		}
+		
+		/**
+		 * 所有道具向左滚动
+		 */ 
+		private function scrollItemsLeft():void{
+			var step:Number = -6;
+			for(var i:int=0; i<_itemsLayer.numChildren; i++){
+				_itemsLayer.getChildAt(i).x += step;
+			}
+		}
+		/**
+		 * 所有道具向右滚动
+		 */ 
+		private function scrollItemsRight():void{
+			var step:Number = 6;
+			for(var i:int=0; i<_itemsLayer.numChildren; i++){
+				_itemsLayer.getChildAt(i).x += step;
+			}
 		}
 		
 		private function onItemError(evt:QueueLoaderEvent):void{

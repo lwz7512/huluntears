@@ -1,10 +1,15 @@
 package com.ybcx.huluntears.scenes{
 	
+	import com.ybcx.huluntears.data.ItemManager;
+	import com.ybcx.huluntears.data.ItemVO;
 	import com.ybcx.huluntears.events.GameEvent;
+	import com.ybcx.huluntears.items.PickupImage;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	
+	import flash.display.Bitmap;
+	
 	import starling.display.Image;
-	import starling.events.Event;
+	import starling.display.Sprite;
 	import starling.events.Touch;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
@@ -16,6 +21,11 @@ package com.ybcx.huluntears.scenes{
 		//进入大地图场景箭头
 		private var _toolReturnPath:String = "assets/sceaobao/tool_return.png";
 		
+		/**
+		 * 大部分场景图形，包括道具，景物，都放在前景层中，方便统一移动
+		 */ 
+		private var frontScenaryLayer:Sprite;
+		
 		private var riverBg:Image;
 		//返回按钮
 		private var goMap:Image;
@@ -24,21 +34,54 @@ package com.ybcx.huluntears.scenes{
 		private var _lastTouchX:Number;
 		private var _lastTouchY:Number;
 		
+		/**
+		 * 道具管理，获得道具信息
+		 */ 
+		private var _itemManager:ItemManager;
 		
-		public function RiverSubScene(){
+		
+		
+		
+		/**
+		 * ------------ 河流子场景 ---------------
+		 */ 
+		public function RiverSubScene(manager:ItemManager){
 			super();
+			_itemManager = manager;
 		}
+		
+		override public function get itemsToPickup():Array{
+			return ["dinggan_1","dinggan_2","dinggan_3","weibi_backleft","weibi_frontleft","gaizhan","men","zhuzi_left"];
+		}		
 		
 		override protected function initScene():void{
 			addDownloadTask(_riverBGPath);
 			addDownloadTask(_toolReturnPath);
 			
+			//加载散落道具图片
+			addItems();
+			
 			download();
+		}
+		
+		private function addItems():void{
+			for(var i:int=0; i<itemsToPickup.length; i++){
+				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
+				if(!item) {
+					trace("item not found: "+itemsToPickup[i]);
+					continue;
+				}
+				addDownloadTask(item.inToolbarPath);				
+			}
 		}
 		
 		override protected function readyToShow():void{
 			riverBg = this.getImageByUrl(_riverBGPath);
 			this.addChild(riverBg);
+			
+			//添加一个前景层，用于放散落道具
+			frontScenaryLayer = new Sprite();
+			this.addChild(frontScenaryLayer);
 			
 			//到大地图场景
 			goMap = getImageByUrl(_toolReturnPath);
@@ -50,6 +93,14 @@ package com.ybcx.huluntears.scenes{
 			goMap.visible = false;
 			goMap.addEventListener(TouchEvent.TOUCH, onMapTouched);
 			
+			//当前场景的散落道具
+			for(var i:int=0; i<itemsToPickup.length; i++){
+				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
+				var bitmap:Bitmap = getBitmapByUrl(item.inToolbarPath);
+				//显示要被拾起的道具		
+				var image:PickupImage = _itemManager.createPickupByData(item,bitmap);
+				frontScenaryLayer.addChild(image);				
+			}
 		}
 		
 		private function onMapTouched(evt:TouchEvent):void{
@@ -98,7 +149,7 @@ package com.ybcx.huluntears.scenes{
 				
 				//移动各个元素
 				riverBg.y += movedY;
-				
+				frontScenaryLayer.y += movedY;
 				
 				//-------------- 移动结束，记下上一个位置 -------------------
 				_lastTouchX = touch.globalX;

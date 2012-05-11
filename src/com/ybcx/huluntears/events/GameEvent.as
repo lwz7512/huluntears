@@ -47,7 +47,7 @@ package com.ybcx.huluntears.events{
 		 */ 
 		public static const HINT_USER:String = "hintUser";
 		/**
-		 * 道具内的道具被选择，即将去场景中使用
+		 * 道具栏内的道具被选择，即将去场景中使用
 		 */ 
 		public static const ITEM_SELECTED:String = "itemSelected";
 		/**
@@ -55,7 +55,7 @@ package com.ybcx.huluntears.events{
 		 */ 
 		public static const ITEM_DESTROYED:String = "itemDestroyed";
 		/**
-		 * 在道具栏显示新找到的道具
+		 * 场景中的道具被点击发现，触发一系列动作
 		 */ 
 		public static const ITEM_FOUND:String = "itemFound";
 		/**

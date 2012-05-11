@@ -58,7 +58,7 @@ package{
 		private var firstMapScene:FirstMapScene;
 		private var aobaoScene:AobaoSubScene;
 		private var riverScene:RiverSubScene;
-		private var lelecheScene:LelecheSubScene;
+		private var lelecheScene:TentSubScene;
 		
 		
 		//保存当前的场景，准备场景切换时清除
@@ -73,16 +73,16 @@ package{
 			
 			this.addEventListener(GameEvent.HINT_USER, onMessage);
 			
+			this.addEventListener(GameEvent.ITEM_FOUND, onItemFound);
 			this.addEventListener(GameEvent.ITEM_SELECTED, onItemSelected);
 			this.addEventListener(GameEvent.ITEM_DESTROYED, onItemDestroy);
-			this.addEventListener(GameEvent.ITEM_FOUND, onItemFound);
 			this.addEventListener(GameEvent.HITTEST_SUCCESS, onItemHitted);
 			this.addEventListener(GameEvent.HITTEST_FAILED, onItemFailed);
 		}
 				
 		override protected function init():void{			
 			
-			//FIXME, 加黑色背景，解决场景切换闪烁的问题
+			//加黑色背景，解决场景切换闪烁的问题
 			//2012/04/25
 			var blackBg:Quad = new Quad(this.stage.stageWidth,this.stage.stageHeight,0x000000);
 			this.addChild(blackBg);					
@@ -106,13 +106,16 @@ package{
 		private function initLoadToolbar():void{
 			itemConfig = new ItemConfig();
 			//道具管理器
-			itemManager = new ItemManager();
+			itemManager = new ItemManager(itemConfig);
 			//先放第一关的道具
 			itemManager.cacheItemVOs(itemConfig.getFirstScenaryItems());
 			
 			_uniToolBar = new BottomToolBar(itemManager);
-			//FIXME, 先隐藏，因为故事场景不需要看到道具栏
+			//先隐藏，因为故事场景不需要看到道具栏
 			_uniToolBar.visible = false;
+			//场景底部
+			_uniToolBar.x = 0;
+			_uniToolBar.y = this.stage.stageHeight-87;
 			//道具栏一直在舞台上，只是有时隐藏了
 			this.addChild(_uniToolBar);
 			_uniToolBar.addEventListener(GameEvent.REEL_TRIGGERD,onWalkThroughOpen);
@@ -192,7 +195,6 @@ package{
 		/**
 		 * 根据事件传值，来决定转向哪个子场景
 		 */
-		//TODO, ADD MORE SUB SCENE...
 		private function goSubScene(evt:GameEvent):void{
 			var subScene:String = evt.context as String;
 			if(subScene==SubSceneNames.FIRST_SUB_AOBAO){
@@ -211,7 +213,7 @@ package{
 			clearCurrentScene();			
 			
 			if(!aobaoScene){
-				aobaoScene = new AobaoSubScene();
+				aobaoScene = new AobaoSubScene(itemManager);
 				//必须在显示前添加道具栏
 				aobaoScene.toolbar = _uniToolBar;
 				aobaoScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
@@ -225,13 +227,12 @@ package{
 			}					
 			
 		}
-		
-		//TODO, ...RIVER SCENE...
+				
 		private function gotoRiver():void{
 			clearCurrentScene();
 			
 			if(!riverScene){
-				riverScene = new RiverSubScene();
+				riverScene = new RiverSubScene(itemManager);
 				riverScene.toolbar = _uniToolBar;
 				riverScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
 			}
@@ -248,7 +249,7 @@ package{
 			clearCurrentScene();
 			
 			if(!lelecheScene){
-				lelecheScene = new LelecheSubScene();
+				lelecheScene = new TentSubScene(itemManager);
 				lelecheScene.toolbar = _uniToolBar;
 				lelecheScene.addEventListener(GameEvent.SWITCH_SCENE, gotoFirstMap);
 			}
@@ -264,12 +265,6 @@ package{
 		//--------------- 其他导航 ----------------------------------
 		
 		
-		
-		
-		
-		
-		
-		
 
 //		---------------  道具操作 -------------------------------------
 		private function onItemFailed(evt:GameEvent):void{
@@ -277,7 +272,7 @@ package{
 			new Shake(item);
 		}
 		
-		//TODO, 这里要考虑如何处理道具添加顺序的问题
+		
 		private function onItemHitted(evt:GameEvent):void{
 			var item:BaseItem = evt.context as BaseItem;
 			
@@ -289,7 +284,7 @@ package{
 			}
 			
 			//放道具到场景中
-			currentScene.putItemHitted(item.img, new Point(item.x,item.y));
+			currentScene.putItemHitted(item.name, null);
 			
 			//清理用过的对象
 			clearContainer(_itemMoveLayer);
@@ -312,7 +307,7 @@ package{
 			//移动过后的位置
 			var movePickupPos:Point = pickup.localToGlobal(new Point(0,0));
 			//从原来所在的容器中移除
-			pickup.removeFromParent();			
+			pickup.removeFromParent();
 			
 			var itemPosInToolbar:Point = _uniToolBar.getItemBGPosByName(pickup.name);
 			if(!itemPosInToolbar){
@@ -366,6 +361,7 @@ package{
 		}
 		
 		private function onLoadingProgress(evt:GameEvent):void{
+			if(_loadingView && this.contains(_loadingView))
 			_loadingView.progress = evt.context as Number;
 		}
 		

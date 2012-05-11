@@ -2,6 +2,8 @@ package com.ybcx.huluntears.scenes{
 	
 	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
+	import com.ybcx.huluntears.data.BuildingVO;
+	import com.ybcx.huluntears.data.ItemConfig;
 	import com.ybcx.huluntears.data.ItemManager;
 	import com.ybcx.huluntears.data.ItemVO;
 	import com.ybcx.huluntears.events.GameEvent;
@@ -45,12 +47,9 @@ package com.ybcx.huluntears.scenes{
 		private var _remoteScenaryPath:String = "assets/firstmap/remote_scenary.jpg";
 		private var _nearScenaryPath:String = "assets/firstmap/near_scenary.png";
 		private var _maskScenaryPath:String = "assets/firstmap/mask_scenary.png";
-		private var _lelechePath:String = "assets/firstmap/leleche.png";
 		
-		//蒙古包底座，在上面搭建蒙古包
-		private var _mgbBase:ImageGroup;
-		private var _mgbX:Number = 200;
-		private var _mgbY:Number = 400;
+		//地图细节，放在近景之上
+		private var _mapDetailsPath:String = "assets/firstmap/details_firstmap.png";			
 		
 		/**
 		 * 大部分场景图形，包括道具，景物，都放在前景层中，方便统一移动
@@ -65,17 +64,25 @@ package com.ybcx.huluntears.scenes{
 		//假3D场景用背景图
 		private var remoteScenary:Image;
 		private var nearScenary:Image;
+		private var mapDetails:Image;
 		private var maskScenary:Image;		
 		private var lelecheScenary:Image;
 		
+		//远景比较特殊，要制造假3D效果，所以保留起始位置
 		private var remoteSceneryStartX:Number = 0;
-		private var _lelecheX:Number = 600;
-		private var _lelecheY:Number = 550;			
 		
+		private var mapDetailsX:Number = 21;
+		private var mapDetailsY:Number = 230;
+		
+		//蒙古包底座，在上面搭建蒙古包
+		private var _mgbBase:ImageGroup;
+		private var _mgbX:Number = 350;
+		private var _mgbY:Number = 450;
+							
 		private var aoboLinkX:Number = 443;
 		private var aoboLinkY:Number = 70;
-		private var lelecheLinkX:Number = 650;
-		private var lelecheLinkY:Number = 560;
+		private var lelecheLinkX:Number = 720;
+		private var lelecheLinkY:Number = 358;
 		private var riverLinkX:Number = -80;
 		private var riverLinkY:Number = 224;				
 		
@@ -88,36 +95,39 @@ package com.ybcx.huluntears.scenes{
 		 */ 
 		private var _itemManager:ItemManager;
 		
+		/**
+		 * 构建蒙古包用图片素材
+		 */ 
+		private var _itemConfig:ItemConfig;
 		
 		/**
-		 * 第一关主场景，包含4个子场景
+		 * ------------ 第一关主场景，包含4个子场景 --------------
 		 */ 
 		public function FirstMapScene(manager:ItemManager){
 			super();	
 			
 			_itemManager = manager;
+			_itemConfig = manager.config;
 		}
-		
-		
 		
 		override public function get itemsToPickup():Array{
-			return ["zhuzi_left","zhuzi_right","zhanlu"];
+			return ["dinggan_10","dinggan_11","weibi_frontright","menzhan","dingzhan"];
 		}
 		
-		/**
-		 * 碰撞检查成功了，可以放了在场景中了
-		 */ 
-		//TODO, 后面要处理正确叠放的状态，比如添加道具后，应该切换成什么中间状态
-		override public function putItemHitted(img:Image,where:Point):void{
-			frontScenaryLayer.addChild(img);
-			//FIXME, 前景层移动的偏差要考虑			
-			img.x = where.x-frontScenaryLayer.x;
-			img.y = where.y-frontScenaryLayer.y;
-			
-		}
 		
 		override public function allowToPut(itemName:String):Boolean{
 			return _mgbBase.acceptItem(itemName);
+		}
+		
+		/**
+		 * 碰撞检查成功了，而且符合顺序，可以放了在场景中搭建蒙古包了
+		 */
+		override public function putItemHitted(itemName:String,where:Point):void{
+			//这里不能直接放在场景中，作为搭建蒙古包的素材，而应该从道具缓存中，
+			//查找相应的搭建道具，然后放在适当位置上
+			trace("put building: "+itemName);
+			var targetItem:Image = _itemManager.getCahcedBuildingImgBy(itemName);
+			if(targetItem) _mgbBase.addChild(targetItem);
 		}
 		
 		override public function get hitTestRect():Rectangle{			
@@ -129,19 +139,27 @@ package com.ybcx.huluntears.scenes{
 			addDownloadTask(_remoteScenaryPath);
 			addDownloadTask(_nearScenaryPath);
 			addDownloadTask(_maskScenaryPath);
-			addDownloadTask(_lelechePath);
-			//加载道具图片
-			addItems();
-			//下载所有素材
+			
+			addDownloadTask(_mapDetailsPath);
+			
+			//加载散落道具图片
+			addItems();					
+			
+			//开始下载所有素材
 			download();
 		}
 		
 		private function addItems():void{
 			for(var i:int=0; i<itemsToPickup.length; i++){
 				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
-				addDownloadTask(item.inToolbarPath);
+				if(!item) {
+					trace("item not found: "+itemsToPickup[i]);
+					continue;
+				}
+				addDownloadTask(item.inToolbarPath);				
 			}
 		}
+
 
 		override protected function detached():void{			
 			trace("first map scene removed!");
@@ -248,15 +266,37 @@ package com.ybcx.huluntears.scenes{
 				_lastTouchY = touch.globalY;
 			}
 		}
-
-					
+		
+		
 		override protected function readyToShow():void{			
 			
 			//显示各个图层
-			showFirstScenary();
+			showFirstScenary();			
+			
+			//蒙古包底座初始化完成，设置碰撞检测对象
+			this.hitTestDO = _mgbBase;					
 			
 			//显示游戏提示
 			showGameHint("首先找到第一张任务图");
+			
+			//加载搭建蒙古包图片
+			addMGBBuilding();
+		}
+		
+		override protected function lazyLoaded():void{
+			super.lazyLoaded();
+			//缓存搭建蒙古包用到的图片
+			cacheMGBImgs();
+		}
+		
+		
+		private function addMGBBuilding():void{
+			var buildings:Array = _itemConfig.buildingMGBImgs;
+			for(var i:int=0; i<buildings.length; i++){
+				var building:BuildingVO = buildings[i] as BuildingVO;
+				addDownloadTask(building.buildingPath);
+			}
+			download();
 		}
 		
 		private function showFirstScenary():void{
@@ -285,15 +325,16 @@ package com.ybcx.huluntears.scenes{
 			nearScenary.y = 0;
 			frontScenaryLayer.addChild(nearScenary);
 			
+			mapDetails = getImageByUrl(_mapDetailsPath);
+			mapDetails.x = mapDetailsX;
+			mapDetails.y = mapDetailsY;
+			frontScenaryLayer.addChild(mapDetails);
+			
 			maskScenary = getImageByUrl(_maskScenaryPath);
 			maskScenary.x = 0;
 			maskScenary.y = 0;
 			frontScenaryLayer.addChild(maskScenary);
-			
-			lelecheScenary = getImageByUrl(_lelechePath);
-			lelecheScenary.x = _lelecheX;
-			lelecheScenary.y = _lelecheY;
-			frontScenaryLayer.addChild(lelecheScenary);
+						
 			
 			//创建热点并添加交互
 			aobaoHotspot = new Image(Texture.fromBitmap(new JewelSmall()));
@@ -308,27 +349,41 @@ package com.ybcx.huluntears.scenes{
 			lelecheHotspot.y = lelecheLinkY;
 			frontScenaryLayer.addChild(lelecheHotspot);
 			
-			//TODO, 添加碰撞检测，是否可以放置道具上去
+			//蒙古包组合图片
 			_mgbBase = new ImageGroup();
 			_mgbBase.x = _mgbX;
 			_mgbBase.y = _mgbY;
 			//设置接收的道具，用于放置顺序检查
-			_mgbBase.acceptNames = itemsToPickup;
+			_mgbBase.acceptNames = _itemConfig.mgbBuildingNames;
 			frontScenaryLayer.addChild(_mgbBase);
+						
 			
-			//设置碰撞检测对象
-			this.hitTestDO = _mgbBase;
-			
-			//显示要被拾起的道具			
+			//当前场景的散落道具
 			for(var i:int=0; i<itemsToPickup.length; i++){
 				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
 				var bitmap:Bitmap = getBitmapByUrl(item.inToolbarPath);
+				//显示要被拾起的道具		
 				var image:PickupImage = _itemManager.createPickupByData(item,bitmap);
-					frontScenaryLayer.addChild(image);
+				frontScenaryLayer.addChild(image);				
 			}
 			
-		}
+		}		
 		
+		/**
+		 * 缓存搭建道具用图片
+		 */ 
+		private function cacheMGBImgs():void{
+			var buildings:Array = _itemConfig.buildingMGBImgs;
+			var cacheCounter:int;
+			for(var i:int=0; i<buildings.length; i++){
+				var building:BuildingVO = buildings[i] as BuildingVO;				
+				var buildingImg:Image = getImageByUrl(building.buildingPath);
+				buildingImg.x = building.buildingX;
+				buildingImg.y = building.buildingY;				
+				_itemManager.cacheBuildingImgBy(building.buildingName,buildingImg);
+				cacheCounter ++;
+			}
+		}		
 
 		//Game to listen...
 		private function showGameHint(msg:String):void{

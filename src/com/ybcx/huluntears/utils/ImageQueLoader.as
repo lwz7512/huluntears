@@ -28,6 +28,15 @@ package com.ybcx.huluntears.utils{
 		}
 		
 		/**
+		 * 清除已下载条目
+		 */ 
+		public function reset():void{
+			while(_loadingQueue.length){
+				_loadingQueue.pop();
+			}
+		}
+		
+		/**
 		 * 将图片添加到查询队列中<br/>
 		 * 
 		 * @param src 图片的地址

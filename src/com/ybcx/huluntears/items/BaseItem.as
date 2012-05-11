@@ -32,7 +32,14 @@ package com.ybcx.huluntears.items{
 		//碰撞检测结果
 		private var hitted:Boolean;
 		
+		//当前道具被合并时，需要找齐的个数
+		//比如：顶杆需要总共11个，才能合为一个顶棚支架
+		private var _groupItemNum:int;
 		
+		
+		/**
+		 * 在道具栏中，添加新发现道具时，构建该对象
+		 */ 
 		public function BaseItem(){
 			super();			
 			
@@ -41,6 +48,30 @@ package com.ybcx.huluntears.items{
 			this.addEventListener(TouchEvent.TOUCH, onTouch);
 		}
 		
+		/**
+		 * 同类道具需要的总数
+		 */ 
+		public function set groupItemNum(total:int):void{
+			_groupItemNum = total;
+		}
+		
+		public function get groupItemNum():int{
+			return _groupItemNum;
+		}
+		
+		public function get groupName():String{
+			if(!this.name) return null;
+			
+			if(this.name.indexOf("_")){
+				return this.name.split("_")[0];
+			}else{
+				return this.name;
+			}
+		}
+		
+		/**
+		 * 与场景物体碰撞检测区域
+		 */
 		public function set globalHitTestRect(target:Rectangle):void{
 			_hitTestRect = target;
 		}
@@ -147,6 +178,7 @@ package com.ybcx.huluntears.items{
 			if(!_content) return new BaseItem();
 			
 			var cloned:BaseItem = new BaseItem();
+			//必须有个名字，道具要根据这个来匹配
 			cloned.name = this.name;
 			cloned.content = new Bitmap(_content.bitmapData.clone(),"auto",true);
 			cloned.followable = true;

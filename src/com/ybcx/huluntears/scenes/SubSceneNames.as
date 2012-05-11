@@ -6,7 +6,7 @@ package com.ybcx.huluntears.scenes{
 		//第一大关子场景
 		public static const FIRST_SUB_RIVER:String = "river";
 		public static const FIRST_SUB_AOBAO:String = "aobao";
-		public static const FIRST_SUB_LELECHE:String = "leleche";
+		public static const FIRST_SUB_LELECHE:String = "tent";
 		
 		//第二大关子场景
 		

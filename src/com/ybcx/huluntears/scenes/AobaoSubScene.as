@@ -1,21 +1,22 @@
 package com.ybcx.huluntears.scenes{
 	
 	
-	import com.hydrotik.queueloader.QueueLoader;
 	import com.hydrotik.queueloader.QueueLoaderEvent;
 	import com.ybcx.huluntears.animation.FadeSequence;
+	import com.ybcx.huluntears.data.ItemManager;
+	import com.ybcx.huluntears.data.ItemVO;
 	import com.ybcx.huluntears.events.GameEvent;
+	import com.ybcx.huluntears.items.PickupImage;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
 	import com.ybcx.huluntears.ui.BottomToolBar;
-	import com.ybcx.huluntears.ui.STProgressBar;
 	
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	
 	import starling.animation.Tween;
 	import starling.core.Starling;
-	import starling.display.Button;
 	import starling.display.Image;
-	import starling.events.Event;
+	import starling.display.Sprite;
 	import starling.events.Touch;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
@@ -29,11 +30,15 @@ package com.ybcx.huluntears.scenes{
 		//进入大地图场景箭头
 		private var _toolReturnPath:String = "assets/sceaobao/tool_return.png";
 		//宝石
-		private var _jewelPath:String = "assets/sceaobao/jewel.png";
+		private var _jewelPath:String = "assets/sceaobao/jewel_s.png";
 		//隐藏地图
 		private var _hidedMapPath:String = "assets/sceaobao/hidedmap_s.png";
 
 		
+		/**
+		 * 大部分场景图形，包括道具，景物，都放在前景层中，方便统一移动
+		 */ 
+		private var frontScenaryLayer:Sprite;
 		
 		//--------- 图片对象 -------------------
 		//敖包图
@@ -65,14 +70,25 @@ package com.ybcx.huluntears.scenes{
 		private var _lastTouchX:Number;
 		private var _lastTouchY:Number;
 		
+		/**
+		 * 道具管理，获得道具信息
+		 */ 
+		private var _itemManager:ItemManager;
+		
+		
+		
 		
 		/**
-		 * 敖包特写场景
+		 * ----------- 敖包特写场景 ---------------------------
 		 */ 
-		public function AobaoSubScene(){
+		public function AobaoSubScene(manager:ItemManager){
 			super();
-			
+			_itemManager = manager;
 		}
+		
+		override public function get itemsToPickup():Array{
+			return ["dinggan_8","dinggan_9","tianchuang_1","zhuzi_right","weibi_backright"];
+		}		
 		
 		override protected function initScene():void{			
 			
@@ -81,14 +97,27 @@ package com.ybcx.huluntears.scenes{
 			addDownloadTask(_jewelPath);
 			addDownloadTask(_hidedMapPath);
 			
+			//加载散落道具图片
+			addItems();
+			
 			download();
 						
+		}
+		
+		private function addItems():void{
+			for(var i:int=0; i<itemsToPickup.length; i++){
+				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
+				if(!item) {
+					trace("item not found: "+itemsToPickup[i]);
+					continue;
+				}
+				addDownloadTask(item.inToolbarPath);				
+			}
 		}
 		
 		override protected function detached():void{			
 			trace("aobao scene removed!");
 		}
-
 		
 		/**
 		 * 处理返回按钮
@@ -130,7 +159,8 @@ package com.ybcx.huluntears.scenes{
 				//移动各个元素
 				aobaoFocus.y += movedY;
 				jewel.y += movedY;
-				hidedMap.y += movedY;
+				hidedMap.y += movedY;				
+				frontScenaryLayer.y += movedY;
 				
 				//-------------- 移动结束，记下上一个位置 -------------------
 				_lastTouchX = touch.globalX;
@@ -170,10 +200,13 @@ package com.ybcx.huluntears.scenes{
 		
 			
 		override protected function readyToShow():void{
-			
+			//底图
 			aobaoFocus = getImageByUrl(_aobaoFocusPath);
 			this.addChild(aobaoFocus);								
-						
+			
+			//添加一个前景层，用于放散落道具
+			frontScenaryLayer = new Sprite();
+			this.addChild(frontScenaryLayer);
 			
 			jewel = getImageByUrl(_jewelPath);
 			//宝石点击触发地图移动和隐藏攻略
@@ -200,6 +233,15 @@ package com.ybcx.huluntears.scenes{
 			//默认先隐藏，鼠标移动到附近，才显示
 			goMap.visible = false;
 			goMap.addEventListener(TouchEvent.TOUCH, onMapTouched);
+			
+			//当前场景的散落道具
+			for(var i:int=0; i<itemsToPickup.length; i++){
+				var item:ItemVO = _itemManager.getItemVO(itemsToPickup[i]);
+				var bitmap:Bitmap = getBitmapByUrl(item.inToolbarPath);
+				//显示要被拾起的道具		
+				var image:PickupImage = _itemManager.createPickupByData(item,bitmap);
+				frontScenaryLayer.addChild(image);				
+			}
 		}
 		
 		private function onHideMapTouched(evt:TouchEvent):void{

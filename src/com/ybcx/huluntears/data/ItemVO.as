@@ -16,7 +16,7 @@ package com.ybcx.huluntears.data{
 		/**
 		 * 放置在场景中搭建物体时的使用顺序，索引小的先放置，索引大的后放置<br/>
 		 * 这个顺序检测在ImageGroup中做
-		 */ 
+		 */
 		public var index:int;
 		
 		/**
@@ -32,10 +32,14 @@ package com.ybcx.huluntears.data{
 		 * 丢在场景中，准备拾起的准道具，也是道具栏中的道具用图片
 		 */ 
 		public var inToolbarPath:String;
+		
 		/**
-		 * 搭建物体时，用的真实图片，尺寸要稍微大些
+		 * 该类道具需要组合时，需要的数目，默认都是一个，即不需要组合
 		 */ 
-		public var inScenePath:String;
+		public var groupItemNum:int = 1;
+		
+		
+		
 		
 		
 		public function ItemVO(){

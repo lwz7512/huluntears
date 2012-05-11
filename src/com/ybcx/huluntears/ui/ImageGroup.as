@@ -24,17 +24,12 @@ package com.ybcx.huluntears.ui{
 	 */ 
 	public class ImageGroup extends Sprite{
 		
+		[Embed(source="assets/mgb/mgb_frame.png")]
+		private var MgbFrame:Class;
+		
 		private var hilite:Image;
 		private var base:Image;
 		private var flareOnce:FadeSequence;
-		
-		private var baseW:Number = 350;
-		private var baseH:Number = 350;
-		
-		private var ellipseX:Number = 50;
-		private var ellipseY:Number = 150;
-		private var ellipseW:Number = 250;
-		private var ellipseH:Number = 100;
 		
 		private var _hitTestRect:Rectangle;
 		
@@ -81,6 +76,7 @@ package com.ybcx.huluntears.ui{
 		 * 全局区域
 		 */ 
 		public function get hitTestRect():Rectangle{
+			//考虑到层移动
 			var global:Point = this.localToGlobal(new Point(0,0));
 			var rect:Rectangle = new Rectangle(global.x+_hitTestRect.x,global.y+_hitTestRect.y,
 				_hitTestRect.width, _hitTestRect.height);
@@ -97,39 +93,27 @@ package com.ybcx.huluntears.ui{
 					flareOnce.start();
 				}
 			}
-			
-			if(touch.phase==TouchPhase.ENDED){
-				
-			}
+						
 		}
 		
+		//TODO, 放蒙古包水印图片进去...
 		private function drawBackground():void{
-			var border:Shape = new Shape();
-			//葱青：淡淡的青绿色
-			border.graphics.lineStyle(1,0x0EB83A,0.8);
-			border.graphics.beginFill(0xF5F5F5, 0.2);
-			border.graphics.drawEllipse(ellipseX-2,ellipseY-2,ellipseW+4,ellipseH+4);
-			border.graphics.endFill();
 			
-			var hilitebd:BitmapData = new BitmapData(baseW,baseH,true,0x020000FF);
-			hilitebd.draw(border);
-			hilite = new Image(Texture.fromBitmapData(hilitebd));
+			hilite = new Image(Texture.fromBitmap(new MgbFrame()));
 			this.addChild(hilite);
+			hilite.scaleX = 1.02;
+			hilite.scaleY = 1.02;
 			//先隐藏了
-			hilite.alpha = 0;
-			
-			var surface:Shape = new Shape();
-			surface.graphics.beginFill(0xF5F5F5, 0.6);
-			surface.graphics.drawEllipse(ellipseX,ellipseY,ellipseW,ellipseH);
-			surface.graphics.endFill();
+			hilite.alpha = 0;	
+			hilite.x = -1;
+			hilite.y = -1;
+									
+			base = new Image(Texture.fromBitmap(new MgbFrame()));
+			this.addChild(base);
+			base.alpha = 0.1;
 			
 			//椭圆就是碰撞检测区域
-			_hitTestRect = new Rectangle(ellipseX,ellipseY,ellipseW,ellipseH);
-			
-			var surfacebd:BitmapData = new BitmapData(baseW,baseH,true,0x0200FF00);
-			surfacebd.draw(surface);
-			base = new Image(Texture.fromBitmapData(surfacebd));
-			this.addChild(base);
+			_hitTestRect = new Rectangle(0,0,base.width,base.height);
 		}
 		
 		

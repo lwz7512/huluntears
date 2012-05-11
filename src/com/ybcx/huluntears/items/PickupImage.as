@@ -32,10 +32,26 @@ package com.ybcx.huluntears.items{
 		//即将要做碰撞检查的点
 		private var _hitTestPoint:Point;
 		
+		//组合道具需要的数目
+		private var _groupItemNum:int;
+		
+		
+		
 		public function PickupImage(texture:Texture){
 			super(texture);			
 			
 			this.addEventListener(TouchEvent.TOUCH, onTouch);
+		}
+		
+		/**
+		 * 同类道具需要的总数
+		 */ 
+		public function set groupItemNum(total:int):void{
+			_groupItemNum = total;
+		}
+		
+		public function get groupItemNum():int{
+			return _groupItemNum;
 		}
 		
 		/**
