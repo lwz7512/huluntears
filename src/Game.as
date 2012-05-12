@@ -379,7 +379,8 @@ package{
 			}else{
 				_uniToolBar.visible = false;
 			}
-			
+			//淡入新场景
+			fadeInScene(currentScene);
 		}
 		
 		private function onLoadingProgress(evt:GameEvent):void{
@@ -431,6 +432,7 @@ package{
 		 * 淡出要显示的场景
 		 */ 
 		private function fadeInScene(scene:BaseScene):void{
+			if(!scene) return;
 			//新出的淡入
 			new FadeIn(scene,0.6);			
 		}

@@ -80,6 +80,8 @@ package com.ybcx.huluntears.ui{
 		//道具数据管理器
 		private var _manager:ItemManager;
 				
+		//道具滚动步伐
+		private var _itemsMoveStep:int = 20;
 		
 		
 		/**
@@ -295,6 +297,10 @@ package com.ybcx.huluntears.ui{
 			
 			//如果有道具被合并，则载入组合道具
 			var groupItemPath:String = _manager.config.groupItemPath(item.groupName);
+			if(!groupItemPath){
+				trace("can not load group: "+groupItemPath);
+				return;
+			}
 			_queLoader.addItem(groupItemPath,null,{title : item.groupName});
 			trace("to load group: "+groupItemPath);
 			_queLoader.execute();
@@ -490,7 +496,7 @@ package com.ybcx.huluntears.ui{
 		 * 所有道具向左滚动
 		 */ 
 		private function scrollItemsLeft():void{
-			var step:Number = -6;
+			var step:Number = -_itemsMoveStep;
 			for(var i:int=0; i<_itemsLayer.numChildren; i++){
 				_itemsLayer.getChildAt(i).x += step;
 			}
@@ -499,7 +505,7 @@ package com.ybcx.huluntears.ui{
 		 * 所有道具向右滚动
 		 */ 
 		private function scrollItemsRight():void{
-			var step:Number = 6;
+			var step:Number = _itemsMoveStep;
 			for(var i:int=0; i<_itemsLayer.numChildren; i++){
 				_itemsLayer.getChildAt(i).x += step;
 			}

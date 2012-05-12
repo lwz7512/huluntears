@@ -34,9 +34,8 @@ package com.ybcx.huluntears.data{
 			names.push("tianchuang");
 			names.push("weibi_frontleft");
 			names.push("weibi_frontright");
-			names.push("men");
-			//FIXME, JUST FOR TEST
-//			names.push("dinggan");
+			names.push("men");			
+			names.push("dinggan");
 			names.push("weizhan");
 			names.push("dingzhan");
 			names.push("gaizhan");
@@ -161,7 +160,7 @@ package com.ybcx.huluntears.data{
 			//---------- 主场景散落的道具 5个------------------------
 			var dinggan_10:ItemVO = new ItemVO();
 			dinggan_10.itemX = 430;
-			dinggan_10.itemY = 270;			
+			dinggan_10.itemY = 272;			
 			dinggan_10.index = 0;
 			dinggan_10.itemName = "dinggan_10";
 			dinggan_10.bgImagePath = "assets/firstitems/dinggan_s_10.png";
@@ -172,7 +171,7 @@ package com.ybcx.huluntears.data{
 			
 			var dinggan_11:ItemVO = new ItemVO();
 			dinggan_11.itemX = 200;
-			dinggan_11.itemY = 527;			
+			dinggan_11.itemY = 530;			
 			dinggan_11.index = 0;
 			dinggan_11.itemName = "dinggan_11";
 			dinggan_11.bgImagePath = "assets/firstitems/dinggan_s_11.png";
@@ -182,8 +181,8 @@ package com.ybcx.huluntears.data{
 			
 			
 			var weibi_1:ItemVO = new ItemVO();
-			weibi_1.itemX = 44;
-			weibi_1.itemY = 305;			
+			weibi_1.itemX = 534;
+			weibi_1.itemY = 204;			
 			weibi_1.index = 0;
 			weibi_1.itemName = "weibi_frontright";
 			weibi_1.bgImagePath = "assets/firstitems/weibi_s_1.png";
@@ -215,7 +214,7 @@ package com.ybcx.huluntears.data{
 			//---------- 敖包场景散落的道具 5个------------------------
 			var dinggan_8:ItemVO = new ItemVO();
 			dinggan_8.itemX = 161;
-			dinggan_8.itemY = 282;			
+			dinggan_8.itemY = 298;			
 			dinggan_8.index = 0;
 			dinggan_8.itemName = "dinggan_8";
 			dinggan_8.bgImagePath = "assets/firstitems/dinggan_s_8.png";
@@ -225,7 +224,7 @@ package com.ybcx.huluntears.data{
 			
 			var dinggan_9:ItemVO = new ItemVO();
 			dinggan_9.itemX = 554;
-			dinggan_9.itemY = 267;			
+			dinggan_9.itemY = 312;			
 			dinggan_9.index = 0;
 			dinggan_9.itemName = "dinggan_9";
 			dinggan_9.bgImagePath = "assets/firstitems/dinggan_s_9.png";
@@ -234,7 +233,7 @@ package com.ybcx.huluntears.data{
 			items.push(dinggan_9);
 			
 			var tianchuang_1:ItemVO = new ItemVO();
-			tianchuang_1.itemX = 167;
+			tianchuang_1.itemX = 157;
 			tianchuang_1.itemY = 504;			
 			tianchuang_1.index = 0;
 			tianchuang_1.itemName = "tianchuang_1";
@@ -244,7 +243,7 @@ package com.ybcx.huluntears.data{
 			items.push(tianchuang_1);
 			
 			var zhuzi_1:ItemVO = new ItemVO();
-			zhuzi_1.itemX = 332;
+			zhuzi_1.itemX = 352;
 			zhuzi_1.itemY = 577;			
 			zhuzi_1.index = 0;
 			zhuzi_1.itemName = "zhuzi_right";
@@ -253,8 +252,8 @@ package com.ybcx.huluntears.data{
 			items.push(zhuzi_1);
 			
 			var weibi_2:ItemVO = new ItemVO();
-			weibi_2.itemX = 557;
-			weibi_2.itemY = 100;			
+			weibi_2.itemX = 567;
+			weibi_2.itemY = 98;			
 			weibi_2.index = 0;
 			weibi_2.itemName = "weibi_backright";
 			weibi_2.bgImagePath = "assets/firstitems/weibi_s_2_bg.png";
@@ -264,8 +263,8 @@ package com.ybcx.huluntears.data{
 			
 			//-------- 河流子场景道具 8个----------------
 			var dinggan_1:ItemVO = new ItemVO();
-			dinggan_1.itemX = 485;
-			dinggan_1.itemY = 201;			
+			dinggan_1.itemX = 465;
+			dinggan_1.itemY = 198;			
 			dinggan_1.index = 0;
 			dinggan_1.itemName = "dinggan_1";
 			dinggan_1.bgImagePath = "assets/firstitems/dinggan_s_1.png";
@@ -274,8 +273,8 @@ package com.ybcx.huluntears.data{
 			items.push(dinggan_1);
 			
 			var dinggan_2:ItemVO = new ItemVO();
-			dinggan_2.itemX = 491;
-			dinggan_2.itemY = 201;			
+			dinggan_2.itemX = 471;
+			dinggan_2.itemY = 198;			
 			dinggan_2.index = 0;
 			dinggan_2.itemName = "dinggan_2";
 			dinggan_2.bgImagePath = "assets/firstitems/dinggan_s_2.png";
@@ -284,8 +283,8 @@ package com.ybcx.huluntears.data{
 			items.push(dinggan_2);
 			
 			var dinggan_3:ItemVO = new ItemVO();
-			dinggan_3.itemX = 553;
-			dinggan_3.itemY = 208;			
+			dinggan_3.itemX = 562;
+			dinggan_3.itemY = 214;			
 			dinggan_3.index = 0;
 			dinggan_3.itemName = "dinggan_3";
 			dinggan_3.bgImagePath = "assets/firstitems/dinggan_s_3.png";

@@ -1,5 +1,6 @@
 package com.ybcx.huluntears.scenes{
 	
+	import com.ybcx.huluntears.animation.FadeSequence;
 	import com.ybcx.huluntears.data.*;
 	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.items.PickupImage;
@@ -25,8 +26,10 @@ package com.ybcx.huluntears.scenes{
 	public class FirstMapScene extends BaseScene{
 		
 		
-		[Embed(source="assets/firstmap/jewel_s.png")]
+		[Embed(source="assets/firstmap/jewel_xs.png")]
 		private var JewelSmall:Class;
+		[Embed(source="assets/firstmap/jewel_light.png")]
+		private var JewelLight:Class;
 		
 		private var _remoteScenaryPath:String = "assets/firstmap/remote_scenary.jpg";
 		private var _nearScenaryPath:String = "assets/firstmap/near_scenary.png";
@@ -71,11 +74,13 @@ package com.ybcx.huluntears.scenes{
 		private var _mgbX:Number = 400;
 		private var _mgbY:Number = 450;
 		
-							
-		private var aoboLinkX:Number = 443;
-		private var aoboLinkY:Number = 70;
+		//敖包珠宝位置		
+		private var aoboLinkX:Number = 445;
+		private var aoboLinkY:Number = 72;
+		//茶壶热点
 		private var lelecheLinkX:Number = 740;
 		private var lelecheLinkY:Number = 358;
+		//河流石头链接
 		private var riverLinkX:Number = 120;
 		private var riverLinkY:Number = 178;				
 		
@@ -92,6 +97,10 @@ package com.ybcx.huluntears.scenes{
 		 * 构建蒙古包用图片素材
 		 */ 
 		private var _itemConfig:ItemConfig;
+		
+		//宝石闪烁
+		private var flare:FadeSequence;
+		
 		
 		/**
 		 * ------------ 第一关主场景，包含4个子场景 --------------
@@ -186,7 +195,11 @@ package com.ybcx.huluntears.scenes{
 			
 			var aobaoLinkGlobalX:Number = aobaoHotspot.localToGlobal(new Point(0,0)).x;
 			var aobaoLinkGlobalY:Number = aobaoHotspot.localToGlobal(new Point(0,0)).y;
+			//FIXME, 宝石太小了，弄大好点
 			var aobaoRect:Rectangle = new Rectangle(aobaoLinkGlobalX,aobaoLinkGlobalY,aobaoHotspot.width,aobaoHotspot.height);
+			aobaoRect.inflate(10,10);
+			aobaoRect.x -= 10;
+			aobaoRect.y -= 10;			
 			var hitAobaoLinkResult:Boolean = hitRectTestByXY(aobaoRect,currentMouseX,currentMouseY);
 			if(hitAobaoLinkResult){
 				switchTo = new GameEvent(GameEvent.SWITCH_SCENE,SubSceneNames.FIRST_SUB_AOBAO);
@@ -326,13 +339,20 @@ package com.ybcx.huluntears.scenes{
 			maskScenary.x = 0;
 			maskScenary.y = 0;
 			frontScenaryLayer.addChild(maskScenary);
-						
+			
+			var jewelLightImg:Image = new Image(Texture.fromBitmap(new JewelLight()));
+			jewelLightImg.x = aoboLinkX-40;
+			jewelLightImg.y = aoboLinkY-38;
+			frontScenaryLayer.addChild(jewelLightImg);
+			flare = new FadeSequence(jewelLightImg,0.2);
+			flare.start();
 			
 			//创建热点并添加交互
 			aobaoHotspot = new Image(Texture.fromBitmap(new JewelSmall()));
 //			aobaoHotspot = createHotspot(10);
 			aobaoHotspot.x = aoboLinkX;
 			aobaoHotspot.y = aoboLinkY;
+			aobaoHotspot.alpha = 0.01;
 			frontScenaryLayer.addChild(aobaoHotspot);
 			
 			//创建热点并添加交互
@@ -382,6 +402,13 @@ package com.ybcx.huluntears.scenes{
 //			var bd:BitmapData = new BitmapData(size,size,true,0xFFFF0000);
 			var bd:BitmapData = new BitmapData(size,size,true,0x01FFFFFF);
 			return new Image(Texture.fromBitmapData(bd));
+		}
+		
+		override public function dispose():void{
+			super.dispose();
+			
+			flare.dispose();
+			
 		}
 		
 	} //end of class

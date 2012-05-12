@@ -212,9 +212,9 @@ package com.ybcx.huluntears.scenes{
 			//宝石点击触发地图移动和隐藏攻略
 			jewel.addEventListener(TouchEvent.TOUCH, onJewelTouched);
 			this.addChild(jewel);
-			jewel.x = 374;
-			jewel.y = 88;	
-			_jewelYDiff = 88;
+			jewel.x = 373;
+			jewel.y = 91;	
+			_jewelYDiff = 91;
 			
 			hidedMap = getImageByUrl(_hidedMapPath);
 			//加点击事件

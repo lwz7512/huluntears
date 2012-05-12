@@ -21,11 +21,26 @@
              if JavaScript disabled.
         -->
         <style type="text/css" media="screen"> 
-            html, body  { height:100%; }
-            body { margin:0; padding:0; overflow:auto; text-align:center; 
-                   background-color: ${bgcolor}; }   
-            object:focus { outline:none; }
-            #flashContent { display:none; }
+           
+            body { 
+	   		margin:0; 
+	   		padding:0; 
+	   		overflow:auto; 
+	   		text-align:center; 
+       }
+	  #header {
+			 width:760px;
+			 height:56px;
+			 margin:1px auto;			 
+			 /*background-color:#0F0;*/
+		 }
+	#flashContent {
+			 width:760px;
+			 height:580px;
+			 margin:0 auto;
+			 /*border:1px solid #FFF;*/
+			 /*background-color:#066;*/
+		 }
         </style>
         
         <!-- Enable Browser History by replacing useBrowserHistory tokens with two hyphens -->
@@ -57,53 +72,15 @@
                 swfVersionStr, xiSwfUrlStr, 
                 flashvars, params, attributes);
             // JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
-            swfobject.createCSS("#flashContent", "display:block;text-align:left;");
+            //swfobject.createCSS("#flashContent", "display:block;text-align:left;");
         </script>
     </head>
     <body>
-        <!-- SWFObject's dynamic embed method replaces this alternative HTML content with Flash content when enough 
-             JavaScript and Flash plug-in support is available. The div is initially hidden so that it doesn't show
-             when JavaScript is disabled.
-        -->
-        <div id="flashContent">
-            <p>
-                To view this page ensure that Adobe Flash Player version 
-                ${version_major}.${version_minor}.${version_revision} or greater is installed. 
-            </p>
-            <script type="text/javascript"> 
-                var pageHost = ((document.location.protocol == "https:") ? "https://" : "http://"); 
-                document.write("<a href='http://www.adobe.com/go/getflashplayer'><img src='" 
-                                + pageHost + "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" ); 
-            </script> 
+         <div id="header">
+		  		<img src="title.png"/>
+		  </div>
+  		<div id="flashContent">
+            
         </div>
-        
-        <noscript>
-            <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="${width}" height="${height}" id="${application}">
-                <param name="movie" value="${swf}.swf" />
-                <param name="quality" value="high" />
-                <param name="bgcolor" value="${bgcolor}" />
-                <param name="allowScriptAccess" value="sameDomain" />
-                <param name="allowFullScreen" value="true" />
-                <!--[if !IE]>-->
-                <object type="application/x-shockwave-flash" data="${swf}.swf" width="${width}" height="${height}">
-                    <param name="quality" value="high" />
-                    <param name="bgcolor" value="${bgcolor}" />
-                    <param name="allowScriptAccess" value="sameDomain" />
-                    <param name="allowFullScreen" value="true" />
-                <!--<![endif]-->
-                <!--[if gte IE 6]>-->
-                    <p> 
-                        Either scripts and active content are not permitted to run or Adobe Flash Player version
-                        ${version_major}.${version_minor}.${version_revision} or greater is not installed.
-                    </p>
-                <!--<![endif]-->
-                    <a href="http://www.adobe.com/go/getflashplayer">
-                        <img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash Player" />
-                    </a>
-                <!--[if !IE]>-->
-                </object>
-                <!--<![endif]-->
-            </object>
-        </noscript>     
    </body>
 </html>

@@ -219,8 +219,11 @@ package com.ybcx.huluntears.scenes.base{
 		 * 子类必须重载此方法，以完成状态更改和资源清理
 		 */ 
 		private function onQueueComplete(evt:QueueLoaderEvent):void{
-			var complete:GameEvent = new GameEvent(GameEvent.LOADING_COMPLETE);
-			this.dispatchEvent(complete);
+			//FIXME, 只派发一次
+			if(!_loadCompleted){
+				var complete:GameEvent = new GameEvent(GameEvent.LOADING_COMPLETE);
+				this.dispatchEvent(complete);				
+			}
 			
 			//不能销毁加载器，但是可以移除事件监听
 			//因为还要从加载器中取图片对象
