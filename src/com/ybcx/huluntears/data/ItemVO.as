@@ -40,8 +40,6 @@ package com.ybcx.huluntears.data{
 		
 		
 		
-		
-		
 		public function ItemVO(){
 			
 		}

@@ -27,7 +27,9 @@ package com.ybcx.huluntears.items{
 		private var _content:Bitmap;
 		private var _touched:Boolean;
 		private var _followable:Boolean;
-		//碰撞检查位置
+		/**
+		 * 全局碰撞区域
+		 */ 
 		private var _hitTestRect:Rectangle;
 		//碰撞检测结果
 		private var hitted:Boolean;
@@ -41,7 +43,7 @@ package com.ybcx.huluntears.items{
 		 * 在道具栏中，添加新发现道具时，构建该对象
 		 */ 
 		public function BaseItem(){
-			super();			
+			super();	
 			
 			this.addEventListener(Event.ADDED_TO_STAGE, onStage);
 			this.addEventListener(Event.REMOVED_FROM_STAGE, clearUp);
@@ -92,6 +94,7 @@ package com.ybcx.huluntears.items{
 			this.stage.removeEventListener(TouchEvent.TOUCH, onScreenTouch);
 		}
 		
+		//这时道具被选中，在全舞台内移动
 		private function onScreenTouch(evt:TouchEvent):void{
 			var touch:Touch = evt.getTouch(this.stage);
 			if(!touch) return;
@@ -99,20 +102,18 @@ package com.ybcx.huluntears.items{
 			
 			var centerX:Number = _content.width/2;
 			var centerY:Number = _content.height/2;
+			//移动时碰撞检测
 			if(_followable && touch.phase==TouchPhase.HOVER){
 				//让该对象跟随鼠标移动
 				this.x = touch.globalX-centerX;
 				this.y = touch.globalY-centerY;
 				
 				if(!_hitTestRect) return;
-				
+				//全局坐标进行碰撞检测
 				if(this.bounds.intersects(_hitTestRect)){
-					hitted = true;
-					//FIXME, VISUAL FEEDBACK
-//					this.alpha = 0.6;
+					hitted = true;					
 				}else{
 					hitted = false;
-//					this.alpha = 1;
 				}
 				
 			}// end of hover

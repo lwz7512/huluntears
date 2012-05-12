@@ -66,6 +66,10 @@ package com.ybcx.huluntears.events{
 		 * 道具与场景舞台碰撞失败，颤抖吧
 		 */ 
 		public static const HITTEST_FAILED:String = "itemOffHitted";
+		/**
+		 * 一关任务完成
+		 */ 
+		public static const MISSION_COMPLETED:String = "misnCompleted";
 		
 		
 		/**

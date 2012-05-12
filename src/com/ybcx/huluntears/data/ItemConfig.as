@@ -35,7 +35,8 @@ package com.ybcx.huluntears.data{
 			names.push("weibi_frontleft");
 			names.push("weibi_frontright");
 			names.push("men");
-			names.push("dinggan");
+			//FIXME, JUST FOR TEST
+//			names.push("dinggan");
 			names.push("weizhan");
 			names.push("dingzhan");
 			names.push("gaizhan");
@@ -170,13 +171,13 @@ package com.ybcx.huluntears.data{
 			
 			
 			var dinggan_11:ItemVO = new ItemVO();
-			dinggan_11.itemX = 198;
-			dinggan_11.itemY = 227;			
+			dinggan_11.itemX = 200;
+			dinggan_11.itemY = 527;			
 			dinggan_11.index = 0;
 			dinggan_11.itemName = "dinggan_11";
 			dinggan_11.bgImagePath = "assets/firstitems/dinggan_s_11.png";
 			dinggan_11.inToolbarPath = "assets/firstitems/dinggan_s_11.png";
-			dinggan_11.groupItemNum = 11;
+			dinggan_11.groupItemNum = 11;			
 			items.push(dinggan_11);
 			
 			
@@ -212,7 +213,6 @@ package com.ybcx.huluntears.data{
 			
 			
 			//---------- 敖包场景散落的道具 5个------------------------
-			//TODO, 调位置
 			var dinggan_8:ItemVO = new ItemVO();
 			dinggan_8.itemX = 161;
 			dinggan_8.itemY = 282;			
@@ -263,7 +263,6 @@ package com.ybcx.huluntears.data{
 			
 			
 			//-------- 河流子场景道具 8个----------------
-			//TODO, 调位置
 			var dinggan_1:ItemVO = new ItemVO();
 			dinggan_1.itemX = 485;
 			dinggan_1.itemY = 201;			
@@ -340,7 +339,6 @@ package com.ybcx.huluntears.data{
 			items.push(zhuzi_2);
 			
 			//----------- 帐篷子场景道具 6个-----------------
-			//TODO, 调位置
 			var dinggan_4:ItemVO = new ItemVO();
 			dinggan_4.itemX = 322;
 			dinggan_4.itemY = 134;			

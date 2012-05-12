@@ -1,6 +1,8 @@
 package com.ybcx.huluntears.ui{
 	
+	import com.ybcx.huluntears.animation.FadeIn;
 	import com.ybcx.huluntears.animation.FadeSequence;
+	import com.ybcx.huluntears.events.GameEvent;
 	import com.ybcx.huluntears.items.BaseItem;
 	
 	import flash.display.BitmapData;
@@ -16,16 +18,23 @@ package com.ybcx.huluntears.ui{
 	import starling.textures.Texture;
 	
 	/**
-	 * 普通的图片组合，不能交互，用于放置道具时，做碰撞检测<br/>
+	 * 搭建道具形成的建筑物，是游戏的主要任务<br/>
 	 * 作为搭建物体时的基础图形提示<br/>
 	 * 此外还保存着道具放置时的顺序规则
 	 * 
 	 * 2012/05/09
 	 */ 
-	public class ImageGroup extends Sprite{
+	public class ItemsBuilding extends Sprite{
 		
 		[Embed(source="assets/mgb/mgb_frame.png")]
 		private var MgbFrame:Class;
+		
+		[Embed(source="assets/firstmap/mgb_shadow.png")]
+		private var MgbShadow:Class;
+		
+		private var shadow:Image;
+		private var _mgbShadowX:Number = 90;
+		private var _mgbShadowY:Number = 104;
 		
 		private var hilite:Image;
 		private var base:Image;
@@ -41,7 +50,7 @@ package com.ybcx.huluntears.ui{
 		
 		
 		
-		public function ImageGroup(){
+		public function ItemsBuilding(){
 			super();
 			
 			this.addEventListener(TouchEvent.TOUCH, onTouch);
@@ -63,13 +72,24 @@ package com.ybcx.huluntears.ui{
 			
 			var result:int = buildingBlocks.indexOf(itemName);
 			if(result==buildingIndex){
-//				trace("to put item: "+itemName);
+//				trace("to put item: "+itemName);				
 				//成功接受，准备放下一个
 				buildingIndex ++;
+				if(buildingIndex==buildingBlocks.length){
+					taskCompleted();
+				}				
 				return true;
 			}else{
 				return false;
 			}
+		}
+				
+		private function taskCompleted():void{
+			trace("mission completed...");
+			new FadeIn(shadow,0.6,function():void{
+				var completed:GameEvent = new GameEvent(GameEvent.MISSION_COMPLETED);
+				dispatchEvent(completed);
+			});
 		}
 		
 		/**
@@ -95,8 +115,7 @@ package com.ybcx.huluntears.ui{
 			}
 						
 		}
-		
-		//TODO, 放蒙古包水印图片进去...
+				
 		private function drawBackground():void{
 			
 			hilite = new Image(Texture.fromBitmap(new MgbFrame()));
@@ -111,6 +130,13 @@ package com.ybcx.huluntears.ui{
 			base = new Image(Texture.fromBitmap(new MgbFrame()));
 			this.addChild(base);
 			base.alpha = 0.1;
+			
+			shadow = new Image(Texture.fromBitmap(new MgbShadow()));
+			shadow.x = _mgbShadowX;
+			shadow.y = _mgbShadowY;
+			//先不显示，蒙古包搭好后，出现
+			shadow.alpha = 0;
+			this.addChild(shadow);
 			
 			//椭圆就是碰撞检测区域
 			_hitTestRect = new Rectangle(0,0,base.width,base.height);

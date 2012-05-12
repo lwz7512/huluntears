@@ -45,7 +45,9 @@ package com.ybcx.huluntears.scenes.base{
 		//已下载数
 		private var loadedCount:int;
 		
-		//碰撞监测对象
+		/**
+		 * 定义当前场景的碰撞检测对象，用于搭建物体
+		 */ 
 		protected var hitTestDO:DisplayObject;
 		
 		
@@ -90,7 +92,8 @@ package com.ybcx.huluntears.scenes.base{
 		}
 		
 		/**
-		 * 碰撞检查矩形，生成克隆道具时，需要从当前场景中知道碰撞有效区域
+		 * 碰撞检查矩形，生成克隆道具时，需要从当前场景中知道碰撞有效区域<br/>
+		 * 全局碰撞区域
 		 */
 		public function get hitTestRect():Rectangle{
 			return null;
@@ -279,6 +282,13 @@ package com.ybcx.huluntears.scenes.base{
 			
 		}
 		
+		
+		//Game to listen...
+		protected function showGameHint(msg:String):void{
+			var hint:GameEvent = new GameEvent(GameEvent.HINT_USER,msg);
+			this.dispatchEvent(hint);
+		}
+		
 		/**
 		 * 暂时没用处
 		 */ 
@@ -292,6 +302,13 @@ package com.ybcx.huluntears.scenes.base{
 			
 		}
 		
+		override public function dispose():void{
+			super.dispose();
+			
+			_queLoader.dispose();
+			this.removeChildren(0,-1,true);
+			
+		}
 		
 	} //end of class
 }

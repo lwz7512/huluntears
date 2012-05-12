@@ -282,11 +282,6 @@ package com.ybcx.huluntears.scenes{
 			}
 		}
 		
-		private function onItemError(evt:QueueLoaderEvent):void{
-			trace("item load error..."+evt.title);
-		}
-		
-
 		
 		override public function dispose():void{
 			super.dispose();

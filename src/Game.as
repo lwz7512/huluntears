@@ -53,12 +53,15 @@ package{
 		//关于
 		private var aboutusLayer:AboutUsLayer;
 		
-		
+		//开场动画
 		private var startScene:StartMovieScene;
+		//第一关场景
 		private var firstMapScene:FirstMapScene;
 		private var aobaoScene:AobaoSubScene;
 		private var riverScene:RiverSubScene;
 		private var lelecheScene:TentSubScene;
+		//第二关场景
+		private var inMGBScene:InMGBScene;
 		
 		
 		//保存当前的场景，准备场景切换时清除
@@ -180,7 +183,8 @@ package{
 			if(!firstMapScene){
 				firstMapScene = new FirstMapScene(itemManager);
 				firstMapScene.toolbar = _uniToolBar;
-				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE,goSubScene);	
+				firstMapScene.addEventListener(GameEvent.SWITCH_SCENE,goSubScene);
+				firstMapScene.addEventListener(GameEvent.MISSION_COMPLETED,onFirstMissionComplete);
 			}
 			showScene(firstMapScene);
 			
@@ -190,6 +194,24 @@ package{
 				fadeInScene(firstMapScene);
 			}	
 								
+		}
+		
+		/**
+		 * 第一关任务完成
+		 */ 
+		private function onFirstMissionComplete(evt:GameEvent):void{			
+			clearCurrentScene(true);
+			
+			if(!inMGBScene){
+				inMGBScene = new InMGBScene(itemManager);				
+			}
+			showScene(inMGBScene);
+			
+			if(!inMGBScene.initialized){
+				showLoadingView("加载第二关...");		
+			}else{
+				fadeInScene(inMGBScene);
+			}	
 		}
 
 		/**
@@ -397,10 +419,11 @@ package{
 		/**
 		 * 切换场景前，先清理当前的场景
 		 */ 
-		private function clearCurrentScene():void{
+		private function clearCurrentScene(dispose:Boolean=false):void{
 			if(!currentScene) return;
 			if(this.contains(currentScene)){
 				this.removeChild(currentScene);
+				if(dispose) currentScene.dispose();
 			}
 		}		
 		

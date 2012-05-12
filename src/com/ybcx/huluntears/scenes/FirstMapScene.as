@@ -1,36 +1,20 @@
 package com.ybcx.huluntears.scenes{
 	
-	import com.hydrotik.queueloader.QueueLoader;
-	import com.hydrotik.queueloader.QueueLoaderEvent;
-	import com.ybcx.huluntears.data.BuildingVO;
-	import com.ybcx.huluntears.data.ItemConfig;
-	import com.ybcx.huluntears.data.ItemManager;
-	import com.ybcx.huluntears.data.ItemVO;
+	import com.ybcx.huluntears.data.*;
 	import com.ybcx.huluntears.events.GameEvent;
-	import com.ybcx.huluntears.items.BaseItem;
 	import com.ybcx.huluntears.items.PickupImage;
-	import com.ybcx.huluntears.map.MapLayer;
 	import com.ybcx.huluntears.scenes.base.BaseScene;
-	import com.ybcx.huluntears.ui.BottomToolBar;
-	import com.ybcx.huluntears.ui.ImageGroup;
-	import com.ybcx.huluntears.ui.WalkThroughLayer;
+	import com.ybcx.huluntears.ui.ItemsBuilding;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
-	import starling.animation.Tween;
-	import starling.core.Starling;
-	import starling.display.Button;
-	import starling.display.DisplayObject;
 	import starling.display.Image;
 	import starling.display.Sprite;
-	import starling.events.Event;
 	import starling.events.Touch;
-	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
-	import starling.text.TextField;
 	import starling.textures.Texture;
 	
 	/**
@@ -51,10 +35,17 @@ package com.ybcx.huluntears.scenes{
 		//地图细节，放在近景之上
 		private var _mapDetailsPath:String = "assets/firstmap/details_firstmap.png";			
 		
+		
 		/**
 		 * 大部分场景图形，包括道具，景物，都放在前景层中，方便统一移动
 		 */ 
 		private var frontScenaryLayer:Sprite;
+		
+		/**
+		 * 尝试使用远景层
+		 */ 
+		private var remoteScenaryLayer:Sprite;
+		
 		
 		//进入子场景入口热点图
 		private var aobaoHotspot:Image;
@@ -68,6 +59,7 @@ package com.ybcx.huluntears.scenes{
 		private var maskScenary:Image;		
 		private var lelecheScenary:Image;
 		
+		
 		//远景比较特殊，要制造假3D效果，所以保留起始位置
 		private var remoteSceneryStartX:Number = 0;
 		
@@ -75,16 +67,17 @@ package com.ybcx.huluntears.scenes{
 		private var mapDetailsY:Number = 230;
 		
 		//蒙古包底座，在上面搭建蒙古包
-		private var _mgbBase:ImageGroup;
-		private var _mgbX:Number = 350;
+		private var _mgbBase:ItemsBuilding;
+		private var _mgbX:Number = 400;
 		private var _mgbY:Number = 450;
+		
 							
 		private var aoboLinkX:Number = 443;
 		private var aoboLinkY:Number = 70;
-		private var lelecheLinkX:Number = 720;
+		private var lelecheLinkX:Number = 740;
 		private var lelecheLinkY:Number = 358;
-		private var riverLinkX:Number = -80;
-		private var riverLinkY:Number = 224;				
+		private var riverLinkX:Number = 120;
+		private var riverLinkY:Number = 178;				
 		
 		//拖拽用参数
 		private var _lastTouchX:Number;
@@ -138,9 +131,8 @@ package com.ybcx.huluntears.scenes{
 												
 			addDownloadTask(_remoteScenaryPath);
 			addDownloadTask(_nearScenaryPath);
-			addDownloadTask(_maskScenaryPath);
-			
-			addDownloadTask(_mapDetailsPath);
+			addDownloadTask(_maskScenaryPath);			
+			addDownloadTask(_mapDetailsPath);		
 			
 			//加载散落道具图片
 			addItems();					
@@ -235,11 +227,11 @@ package com.ybcx.huluntears.scenes{
 				var tempY:Number = frontScenaryLayer.y+movedY;
 				
 				//移动速度不一致
-				var speedDiff:Number = 1.8;
-				var tempRemoteX:Number = remoteScenary.x-speedDiff*movedX;
+				var speedDiff:Number = 2;
+				var tempRemoteX:Number = remoteScenaryLayer.x-speedDiff*movedX;
 				
-				var leftBoundary:Number = AppConfig.VIEWPORT_WIDTH-frontScenaryLayer.width;
-				var topBoundary:Number = AppConfig.VIEWPORT_HEIGHT-frontScenaryLayer.height;
+				var leftBoundary:Number = AppConfig.VIEWPORT_WIDTH-frontScenaryLayer.width+20;
+				var topBoundary:Number = AppConfig.VIEWPORT_HEIGHT-frontScenaryLayer.height+100;
 				
 				//近景移动校验
 				if(tempX>0) tempX = 0;
@@ -255,11 +247,10 @@ package com.ybcx.huluntears.scenes{
 				frontScenaryLayer.x = tempX;
 				frontScenaryLayer.y = tempY;							
 				
-				//---------------- 远景图，相对运动 ---------------------------
-				remoteScenary.x = tempRemoteX;
+				//---------------- 远景图，水平相对运动 ---------------------------
+				remoteScenaryLayer.x = tempRemoteX;
 				//移动河流石头热点
-				riverHotspot.x = tempRemoteX+riverLinkX-remoteSceneryStartX;
-														
+//				riverHotspot.x = tempRemoteX+riverLinkX-remoteSceneryStartX;				
 				
 				//-------------- 移动结束，记下上一个位置 -------------------
 				_lastTouchX = touch.globalX;
@@ -301,20 +292,21 @@ package com.ybcx.huluntears.scenes{
 		
 		private function showFirstScenary():void{
 			
-			remoteScenary = getImageByUrl(_remoteScenaryPath);
-			
+			remoteScenary = getImageByUrl(_remoteScenaryPath);			
+			remoteScenaryLayer = new Sprite();
 			//------------ 远景层内容，大小和位置比较特殊，不放在单独的层中处理移动----------
 			//计算起点位置，远景的右边缘与舞台右边缘对齐
 			remoteSceneryStartX = this.stage.stageWidth-remoteScenary.width;
-			remoteScenary.x = remoteSceneryStartX;
-			remoteScenary.y = 0;
-			this.addChild(remoteScenary);
+			remoteScenaryLayer.x = remoteSceneryStartX;
+			remoteScenaryLayer.y = 0;
+			remoteScenaryLayer.addChild(remoteScenary);
+			this.addChild(remoteScenaryLayer);
 			
 			//添加交互，远景层的河流热点
-			riverHotspot = createHotspot(10);
+			riverHotspot = createHotspot(15);
 			riverHotspot.x = riverLinkX;
 			riverHotspot.y = riverLinkY;
-			this.addChild(riverHotspot);
+			remoteScenaryLayer.addChild(riverHotspot);
 			
 			//------------ 近景层内容，放在近景层中统一移动 ------------------------------------
 			frontScenaryLayer = new Sprite();
@@ -350,13 +342,12 @@ package com.ybcx.huluntears.scenes{
 			frontScenaryLayer.addChild(lelecheHotspot);
 			
 			//蒙古包组合图片
-			_mgbBase = new ImageGroup();
+			_mgbBase = new ItemsBuilding();
 			_mgbBase.x = _mgbX;
 			_mgbBase.y = _mgbY;
 			//设置接收的道具，用于放置顺序检查
 			_mgbBase.acceptNames = _itemConfig.mgbBuildingNames;
-			frontScenaryLayer.addChild(_mgbBase);
-						
+			frontScenaryLayer.addChild(_mgbBase);			
 			
 			//当前场景的散落道具
 			for(var i:int=0; i<itemsToPickup.length; i++){
@@ -364,6 +355,7 @@ package com.ybcx.huluntears.scenes{
 				var bitmap:Bitmap = getBitmapByUrl(item.inToolbarPath);
 				//显示要被拾起的道具		
 				var image:PickupImage = _itemManager.createPickupByData(item,bitmap);
+				//要区分是放在远景层还是近景层，绝大部分都是在近景层
 				frontScenaryLayer.addChild(image);				
 			}
 			
@@ -383,12 +375,6 @@ package com.ybcx.huluntears.scenes{
 				_itemManager.cacheBuildingImgBy(building.buildingName,buildingImg);
 				cacheCounter ++;
 			}
-		}		
-
-		//Game to listen...
-		private function showGameHint(msg:String):void{
-			var hint:GameEvent = new GameEvent(GameEvent.HINT_USER,msg);
-			this.dispatchEvent(hint);
 		}		
 		
 		//创建透明热点
